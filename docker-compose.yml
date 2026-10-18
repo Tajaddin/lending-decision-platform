@@ -1,0 +1,137 @@
+# `make up` starts everything below except the `jobs` profile.
+# Host ports are offset from the usual ones so the stack does not collide with other local projects.
+name: ldp
+
+x-app: &app
+  image: ldp/app:local
+  build: { context: ., dockerfile: docker/app.Dockerfile }
+  environment: &app-env
+    LDP_GCP_PROJECT: ldp-local
+    PUBSUB_EMULATOR_HOST: pubsub:8681
+    LDP_BQ_ENDPOINT: http://bigquery:9050
+    LDP_TFS_URL: http://tfserving:8501
+    LDP_MODELS_DIR: /models
+    LDP_API_KEYS: ${LDP_API_KEYS:-local-branch-app:local-dev-key-branch-app-0001,local-replay:local-dev-key-replay-000002}
+    LDP_RATE_LIMIT_PER_MINUTE: ${LDP_RATE_LIMIT_PER_MINUTE:-60000}
+    LDP_MONITOR_MIN_ROWS: ${LDP_MONITOR_MIN_ROWS:-500}
+  volumes:
+    - ./models:/models:ro
+  restart: unless-stopped
+
+services:
+  tfserving:
+    image: tensorflow/serving:2.21.0
+    command:
+      - --model_name=ldp
+      - --model_base_path=/models/ldp
+      - --rest_api_port=8501
+      - --port=8500
+      - --monitoring_config_file=/config/monitoring.config
+      - --file_system_poll_wait_seconds=30
+    volumes:
+      - ./models:/models:ro
+      - ./docker/tfserving:/config:ro
+    ports: ["8501:8501"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8501 && printf \"GET /v1/models/ldp HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q AVAILABLE <&3'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:589.0.0-emulators
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8681 --project=ldp-local
+    ports: ["8681:8681"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8681 >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  bigquery:
+    image: ghcr.io/goccy/bigquery-emulator:0.8.1
+    command: --project=ldp-local --dataset=lending --port=9050 --grpc-port=9060
+    ports: ["9050:9050"]
+    restart: unless-stopped
+
+  bootstrap:
+    <<: *app
+    command: ["ldp", "bootstrap-local"]
+    restart: "no"
+    healthcheck: { disable: true }
+    depends_on:
+      pubsub: { condition: service_healthy }
+      bigquery: { condition: service_started }
+
+  api:
+    <<: *app
+    ports: ["8200:8080"]
+    depends_on:
+      tfserving: { condition: service_healthy }
+      bootstrap: { condition: service_completed_successfully }
+
+  sink:
+    <<: *app
+    command: ["ldp", "sink", "--metrics-port", "9109"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9109/metrics', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    depends_on:
+      bootstrap: { condition: service_completed_successfully }
+
+  monitor:
+    <<: *app
+    command: ["ldp", "monitor", "--interval-s", "30", "--port", "9108"]
+    environment:
+      <<: *app-env
+      LDP_MONITOR_WINDOW_HOURS: "24"
+    ports: ["9108:9108"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9108/metrics', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    depends_on:
+      bootstrap: { condition: service_completed_successfully }
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.retention.time=7d]
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+    ports: ["9095:9090"]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me-locally}
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3005:3000"]
+    depends_on: [prometheus]
+    restart: unless-stopped
+
+  # Batch side, on demand: `docker compose --profile jobs run --rm jobs pipeline ...`
+  jobs:
+    image: ldp/jobs:local
+    build: { context: ., dockerfile: docker/jobs.Dockerfile }
+    profiles: [jobs]
+    environment:
+      LDP_LAKE_ROOT: /data/lake
+      LDP_TRAINING_DIR: /data/training
+      LDP_MODELS_DIR: /models
+      LDP_REPORTS_DIR: /reports
+      LDP_SPARK_DRIVER_MEMORY: ${LDP_SPARK_DRIVER_MEMORY:-8g}
+    volumes:
+      - ./data:/data
+      - ./models:/models
+      - ./reports:/reports

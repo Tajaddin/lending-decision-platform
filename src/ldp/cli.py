@@ -117,6 +117,90 @@ def score_batch(
 
 
 @app.command()
+def serve(host: str = "0.0.0.0", port: int = 8080, workers: int = 2) -> None:  # noqa: S104 (container)
+    """Run the decision API (uvicorn). With more than one worker, metrics use prometheus_client's multiprocess
+    mode: each worker writes to PROMETHEUS_MULTIPROC_DIR and /metrics merges them."""
+    import os
+    import shutil
+    import tempfile
+
+    import uvicorn
+
+    if workers > 1:
+        metrics_dir = os.environ.setdefault("PROMETHEUS_MULTIPROC_DIR", f"{tempfile.gettempdir()}/ldp-metrics")
+        shutil.rmtree(metrics_dir, ignore_errors=True)  # stale files from a previous run would be counted
+        os.makedirs(metrics_dir, exist_ok=True)
+    uvicorn.run("ldp.serving.app:main", factory=True, host=host, port=port, workers=workers, access_log=False)
+
+
+@app.command()
+def bootstrap_local() -> None:
+    """Create the topics, subscription, dataset and table in the local emulators (idempotent)."""
+    from ldp.streaming.bq import client, ensure_table
+    from ldp.streaming.sink import Sink
+
+    settings = get_settings()
+    bq = client(settings)
+    table_id = ensure_table(settings, bq)
+    Sink(settings, bq, table_id).ensure_subscription()
+    typer.echo(f"ready: topic {settings.pubsub_topic}, subscription {settings.pubsub_subscription}, table {table_id}")
+
+
+@app.command()
+def sink(metrics_port: int = 9109) -> None:
+    """Stream decision events from Pub/Sub into BigQuery (local stand-in for a BigQuery subscription)."""
+    from prometheus_client import start_http_server
+
+    from ldp.streaming.bq import client, ensure_table
+    from ldp.streaming.sink import Sink
+
+    settings = get_settings()
+    bq = client(settings)
+    worker = Sink(settings, bq, ensure_table(settings, bq))
+    worker.ensure_subscription()
+    start_http_server(metrics_port)
+    worker.run_forever()
+
+
+@app.command()
+def monitor(once: bool = False, interval_s: int = 30, port: int = 9108) -> None:
+    """Drift (PSI) and fairness (AIR) on recent decisions; a service with /metrics, or one cycle with --once."""
+    from ldp.monitoring.monitor import run
+    from ldp.serving.app import load_metadata
+
+    settings = get_settings()
+    result = run(
+        settings,
+        load_metadata(Path(settings.models_dir), settings.model_name),
+        once=once,
+        interval_s=interval_s,
+        port=port,
+    )
+    if once:
+        typer.echo(result)
+
+
+@app.command()
+def replay(
+    url: str = "http://localhost:8200",
+    split: Path = Path("data/sample/test"),
+    n: int = 5000,
+    rate: float = 50.0,
+    batch: int = 1,
+    api_key: Annotated[str, typer.Option(envvar="LDP_REPLAY_KEY")] = "",
+) -> None:
+    """Send real held-out applications to the API at a fixed rate."""
+    import asyncio
+
+    from ldp.monitoring.replay import load_applications
+    from ldp.monitoring.replay import replay as run_replay
+
+    apps = load_applications(split, n)
+    result = asyncio.run(run_replay(url, api_key, apps, rate=rate, batch=batch))
+    typer.echo(result)
+
+
+@app.command()
 def download(years: str = "2023,2024,2025", out_dir: Path = Path("data/raw")) -> None:
     """Download and unzip the national snapshot files (wraps scripts/download_hmda.sh)."""
     import subprocess

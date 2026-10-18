@@ -29,7 +29,7 @@ jobs:
       - run: uv run mypy
 
   test:
-    name: unit and Spark tests (coverage)
+    name: unit, Spark and TensorFlow tests (coverage)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -41,8 +41,42 @@ jobs:
         with: { path: ~/.ivy2, key: ivy-delta-4.4.1 }
       - run: uv sync --locked --all-extras
       - run: uv run pytest -m "not integration" --cov=ldp --cov-report=xml --cov-report=term
+        env: { TF_CPP_MIN_LOG_LEVEL: "2" }
       - uses: actions/upload-artifact@v4
         with: { name: coverage, path: coverage.xml, retention-days: 14 }
+
+  integration:
+    name: TF Serving, Pub/Sub and BigQuery emulators (Testcontainers)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { version: "${{ env.UV_VERSION }}", enable-cache: true }
+      - run: uv sync --locked --all-extras
+      - run: uv run pytest -m integration -v
+        env: { TF_CPP_MIN_LOG_LEVEL: "2" }
+
+  stack:
+    name: docker compose smoke test (make up)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up -d --build --wait --wait-timeout 300 api sink monitor prometheus
+      - name: one decision end to end
+        run: |
+          curl -fsS http://localhost:8200/ready
+          curl -fsS -X POST http://localhost:8200/v1/decisions \
+            -H 'content-type: application/json' -H 'X-API-Key: local-dev-key-branch-app-0001' \
+            -d "{\"applications\": [$(python3 -c 'import json; print(json.dumps(json.load(open("bench/k6/applications.json"))[0]))')]}"
+          for i in $(seq 1 20); do
+            n=$(curl -fsS -X POST 'http://localhost:9050/bigquery/v2/projects/ldp-local/queries' -H 'content-type: application/json' \
+              -d '{"query": "SELECT COUNT(*) AS n FROM lending.decisions", "useLegacySql": false}' | python3 -c 'import json,sys; print(json.load(sys.stdin)["rows"][0]["f"][0]["v"])')
+            [ "$n" -ge 1 ] && echo "decisions in BigQuery: $n" && exit 0
+            sleep 3
+          done
+          docker compose logs sink api; exit 1
+      - if: failure()
+        run: docker compose logs
 
   bash:
     name: shellcheck and bats
@@ -52,6 +86,13 @@ jobs:
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq bats
       - run: shellcheck scripts/*.sh
       - run: bats tests/bats
+
+  alerts:
+    name: promtool rule tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker run --rm -v "$PWD/observability:/w" -w /w --entrypoint promtool prom/prometheus:v3.5.0 test rules alerts_test.yml
 
   security:
     name: secrets and dependency audit
@@ -67,3 +108,13 @@ jobs:
         with: { version: "${{ env.UV_VERSION }}" }
       - run: uv sync --locked --all-extras
       - run: uv run pip-audit --skip-editable --progress-spinner off
+
+  images:
+    name: build images
+    runs-on: ubuntu-24.04
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: docker build -f docker/app.Dockerfile -t ldp/app:ci . && docker image ls ldp/app:ci --format '{{.Repository}} {{.Size}}'
+      - run: docker build -f docker/jobs.Dockerfile -t ldp/jobs:ci . && docker image ls ldp/jobs:ci --format '{{.Repository}} {{.Size}}'

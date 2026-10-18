@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     api_keys: SecretStr = Field(default=SecretStr(""), description="comma-separated client:key pairs")
     rate_limit_per_minute: int = 600
     max_batch: int = 64
+    max_inflight: int = 48  # concurrent model calls per API worker before shedding load
 
     # Decision events (Pub/Sub) and their store (BigQuery). The Google clients pick up
     # PUBSUB_EMULATOR_HOST themselves; BigQuery needs an explicit endpoint for its emulator.

@@ -1,0 +1,71 @@
+groups:
+  - name: ldp-service
+    rules:
+      - alert: LdpHighErrorRate
+        expr: |
+          sum(rate(ldp_http_requests_total{route="/v1/decisions", status=~"5.."}[5m]))
+            / clamp_min(sum(rate(ldp_http_requests_total{route="/v1/decisions"}[5m])), 1e-9) > 0.02
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "More than 2% of decision requests fail with 5xx"
+          runbook: "docs/RUNBOOK.md#high-error-rate"
+
+      - alert: LdpLatencySloBreach
+        expr: |
+          histogram_quantile(0.99, sum by (le) (rate(ldp_http_request_seconds_bucket{route="/v1/decisions"}[10m]))) > 0.25
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Decision p99 latency above the 250 ms SLO"
+          runbook: "docs/RUNBOOK.md#latency"
+
+      - alert: LdpModelUnavailable
+        expr: sum(increase(ldp_tfserving_errors_total[5m])) > 5
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "TF Serving calls are failing; decisions return 503"
+          runbook: "docs/RUNBOOK.md#model-unavailable"
+
+      - alert: LdpDecisionEventsFailing
+        expr: sum(rate(ldp_events_published_total{outcome="error"}[5m])) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Decision events are not reaching Pub/Sub; monitoring data is incomplete"
+          runbook: "docs/RUNBOOK.md#events"
+
+  - name: ldp-model
+    rules:
+      - alert: LdpFeatureDriftMajor
+        expr: max by (feature) (ldp_feature_psi) > 0.25
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "Input {{ $labels.feature }} has shifted from the training year (PSI > 0.25)"
+          runbook: "docs/RUNBOOK.md#drift"
+
+      - alert: LdpScoreDrift
+        expr: ldp_score_psi > 0.10
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "Score distribution has moved from the training year (PSI > 0.10)"
+          runbook: "docs/RUNBOOK.md#drift"
+
+      - alert: LdpAdverseImpact
+        expr: ldp_model_air < 0.80
+        for: 30m
+        labels: { severity: critical, team: compliance }
+        annotations:
+          summary: "Adverse impact ratio for {{ $labels.dimension }}={{ $labels.group }} is below 0.80"
+          runbook: "docs/RUNBOOK.md#adverse-impact"
+
+      - alert: LdpMonitorStale
+        expr: time() - ldp_monitor_last_success_timestamp > 900
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "The drift and fairness monitor has not completed a cycle in 15 minutes"
+          runbook: "docs/RUNBOOK.md#monitor"

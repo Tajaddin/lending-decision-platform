@@ -1,0 +1,22 @@
+{
+  "applications": [
+    {
+      "loan_amount": 255000.0,
+      "income": 85.0,
+      "property_value": 255000.0,
+      "debt_to_income_ratio": 55.0,
+      "loan_term": 360.0,
+      "loan_type": "3",
+      "loan_purpose": "1",
+      "occupancy_type": "1",
+      "construction_method": "1",
+      "total_units": "1",
+      "applicant_credit_score_type": "2",
+      "co_applicant_credit_score_type": "10",
+      "submission_of_application": "1",
+      "preapproval": "2",
+      "conforming_loan_limit": "C",
+      "application_id": "demo-1"
+    }
+  ]
+}
