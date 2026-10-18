@@ -7,7 +7,9 @@ unchanged. Everywhere else it starts a local session with the open-source Delta 
 from __future__ import annotations
 
 import os
+from typing import Any
 
+from pyspark.errors import PySparkAttributeError
 from pyspark.sql import SparkSession
 
 from ldp.config import get_settings
@@ -15,6 +17,17 @@ from ldp.config import get_settings
 
 def on_databricks() -> bool:
     return "DATABRICKS_RUNTIME_VERSION" in os.environ
+
+
+def spark_info(spark: SparkSession) -> dict[str, Any]:
+    """Where a run executed, for the run reports. Serverless and other Spark Connect sessions have no
+    sparkContext, so master and parallelism are unknown there."""
+    try:
+        context = spark.sparkContext
+        return {"master": context.master, "version": spark.version, "default_parallelism": context.defaultParallelism}
+    except PySparkAttributeError:
+        master = "databricks-serverless" if on_databricks() else "spark-connect"
+        return {"master": master, "version": spark.version, "default_parallelism": None}
 
 
 def get_spark(app_name: str = "ldp", master: str | None = None) -> SparkSession:

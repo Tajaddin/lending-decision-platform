@@ -51,6 +51,21 @@ def test_every_databricks_task_parameter_is_a_real_cli_option() -> None:
         assert set(stages.split(",")) <= set(ALL_STAGES)
 
 
+def test_the_entry_point_returns_on_success_and_keeps_failure_codes(monkeypatch) -> None:
+    import tomllib
+
+    from ldp.cli import run
+
+    scripts = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["scripts"]
+    assert scripts["ldp"] == "ldp.cli:run", "Databricks wheel tasks call the ldp entry point"
+    monkeypatch.setattr("sys.argv", ["ldp", "--help"])
+    assert run() is None  # serverless reports even SystemExit(0) as a failed task
+    monkeypatch.setattr("sys.argv", ["ldp", "no-such-command"])
+    with pytest.raises(SystemExit) as exc:
+        run()
+    assert exc.value.code == 2
+
+
 def test_compose_services_and_ports() -> None:
     compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text())
     services = compose["services"]

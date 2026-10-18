@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-10-18T21:06:38+00:00",
+  "host": {
+    "platform": "Linux-6.1.188-233.386.amzn2023.aarch64-aarch64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpus": 4,
+    "mem_total_gb": 15.3,
+    "cpu_model": ""
+  },
+  "stages": [
+    "gold",
+    "audit",
+    "export"
+  ],
+  "years": [
+    2023,
+    2024,
+    2025
+  ],
+  "bronze": {},
+  "silver": {},
+  "gold": {
+    "2023": {
+      "rows": 4629490,
+      "denial_rate": 0.18646654383096195
+    },
+    "2024": {
+      "rows": 5007151,
+      "denial_rate": 0.18161245786276467
+    },
+    "2025": {
+      "rows": 5444487,
+      "denial_rate": 0.17770820281139435
+    }
+  },
+  "leakage_flagged": [
+    "combined_loan_to_value_ratio",
+    "aus_1",
+    "initially_payable_to_institution",
+    "interest_rate",
+    "rate_spread",
+    "total_loan_costs",
+    "origination_charges",
+    "discount_points",
+    "lender_credits",
+    "hoepa_status",
+    "purchaser_type",
+    "denial_reason_1",
+    "denial_reason_2"
+  ],
+  "leakage_audit_enforced": true,
+  "timings_s": {
+    "gold": 25.84,
+    "leakage_audit": 11.34,
+    "export": 36.32
+  },
+  "spark": {
+    "master": "databricks-serverless",
+    "version": "4.2.0",
+    "default_parallelism": null
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "splits": [
+    {
+      "split": "train",
+      "year": 2023,
+      "rows": 4629490,
+      "denial_rate": 0.18646654383096195,
+      "path": "/Volumes/workspace/lending/raw/training/train",
+      "gold_delta_version": 0
+    },
+    {
+      "split": "valid",
+      "year": 2024,
+      "rows": 5007151,
+      "denial_rate": 0.18161245786276467,
+      "path": "/Volumes/workspace/lending/raw/training/valid",
+      "gold_delta_version": 0
+    },
+    {
+      "split": "test",
+      "year": 2025,
+      "rows": 5444487,
+      "denial_rate": 0.17770820281139435,
+      "path": "/Volumes/workspace/lending/raw/training/test",
+      "gold_delta_version": 0
+    }
+  ]
+}

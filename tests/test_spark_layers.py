@@ -152,3 +152,28 @@ def test_gold_and_split_export(spark, fixture_csv, tmp_path: Path) -> None:
     write_manifest(exports, tmp_path / "dataset.json")
     manifest = json.loads((tmp_path / "dataset.json").read_text())
     assert manifest["splits"][0]["gold_delta_version"] == exports[0].gold_delta_version
+
+
+def test_spark_info_on_a_local_session_and_without_a_spark_context(spark, monkeypatch) -> None:
+    from pyspark.errors import PySparkAttributeError
+
+    from ldp.spark.session import spark_info
+
+    local = spark_info(spark)
+    assert local["master"].startswith("local") and local["default_parallelism"] >= 1
+
+    class ConnectSession:  # serverless compute: Spark Connect has no sparkContext
+        version = "4.0.0"
+
+        @property
+        def sparkContext(self):  # noqa: N802 (PySpark's name)
+            raise PySparkAttributeError(
+                errorClass="JVM_ATTRIBUTE_NOT_SUPPORTED", messageParameters={"attr_name": "sparkContext"}
+            )
+
+    monkeypatch.setenv("DATABRICKS_RUNTIME_VERSION", "client.3")
+    assert spark_info(ConnectSession()) == {
+        "master": "databricks-serverless",
+        "version": "4.0.0",
+        "default_parallelism": None,
+    }
