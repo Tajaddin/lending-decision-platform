@@ -125,6 +125,7 @@ def render(reports: Path, model_dir: Path) -> str:
                 f"{g['model_air']:.3f} | {g.get('auc', float('nan')):.3f} |"
             )
     lines += ["", f"Flags: {', '.join(fair['flags']) if fair['flags'] else 'none'}.", ""]
+    lines += _drivers_section(reports)
     agree = m["reason_agreement"]
     lines += [
         "## Explanations",
@@ -157,6 +158,65 @@ def render(reports: Path, model_dir: Path) -> str:
         "underwriting capacity.",
     ]
     return "\n".join(lines) + "\n"
+
+
+def _drivers_section(reports: Path) -> list[str]:
+    """Why the audit fails (integrated-gradient gaps) and what removing one input at a time does to it."""
+    lines: list[str] = []
+    drivers_path, ablation_path = reports / "fairness-drivers.json", reports / "ablation.json"
+    if drivers_path.exists():
+        d = _load(drivers_path)
+        lines += [
+            "### Where the gaps come from",
+            "",
+            "Mean integrated-gradient attribution of each input, group minus reference (20,000 applications per "
+            "side, 2025). The differences add up to the gap in mean logit.",
+            "",
+            "| Comparison | Gap in mean logit | Largest contributors |",
+            "|---|---|---|",
+        ]
+        for c in d["comparisons"]:
+            top = ", ".join(f"`{x['input']}` {x['gap']:+.2f}" for x in c["drivers"][:4])
+            label = "Age 62+ vs under 62" if c["dimension"] == "age" else f"{c['group']} vs {c['reference']}"
+            lines.append(f"| {label} | {c['mean_logit_gap']:+.2f} | {top} |")
+        age = next((c for c in d["comparisons"] if c["dimension"] == "age"), None)
+        if age:
+            g, r = age["group_profile"], age["reference_profile"]
+            lines += [
+                "",
+                f"The largest contributor for age is `loan_purpose`: applicants 62 and over apply for refinancing far "
+                f"more often ({_pct(g['share_refinance'])} vs {_pct(r['share_refinance'])}) and report less income "
+                f"(median ${g['median_income_k']:.0f}k vs ${r['median_income_k']:.0f}k).",
+            ]
+        lines.append("")
+    if ablation_path.exists():
+        a = _load(ablation_path)
+        obs = a["lenders_observed"]
+        lines += [
+            "### Less discriminatory alternative search (drop one input, XGBoost, same operating rule)",
+            "",
+            f"Lenders' own AIR on the same 2025 sample: age {obs['air age 62+ vs under 62']:.3f}, Black "
+            f"{obs['air Black vs White']:.3f}, female {obs['air Female vs Male']:.3f}. All inputs: AUC "
+            f"{a['all_inputs']['test_auc']:.4f}, age AIR {a['all_inputs']['air age 62+ vs under 62']:.3f}, Black AIR "
+            f"{a['all_inputs']['air Black vs White']:.3f}.",
+            "",
+            "| Input removed | AUC | Age AIR | Black AIR | Female AIR |",
+            "|---|---|---|---|---|",
+        ]
+        for r in a["ablations"]:
+            lines.append(
+                f"| {r['dropped']} | {r['test_auc']:.4f} | {r['air age 62+ vs under 62']:.3f} | "
+                f"{r['air Black vs White']:.3f} | {r['air Female vs Male']:.3f} |"
+            )
+        lines += [
+            "",
+            "No single removal brings every group to the lenders' level: removing `loan_purpose` lifts the age AIR "
+            "to about 0.80 but lowers the Black AIR, and no input is a hidden leak (the largest AUC loss is "
+            "debt-to-income). A real alternative needs a joint search (constraints or reweighting), not a "
+            "feature list; FinRegLab reports the same about feature removal.",
+            "",
+        ]
+    return lines
 
 
 def write(reports: Path, model_dir: Path, out: Path) -> None:
