@@ -55,7 +55,7 @@ def run_pipeline(
     if unknown:
         raise ValueError(f"unknown stages {sorted(unknown)}; choose from {ALL_STAGES}")
     from ldp.audit import assert_features_clean, candidates, is_powered, run_audit, write_audit
-    from ldp.spark import bronze, gold, quality, silver
+    from ldp.spark import bronze, gold, lake, quality, silver
     from ldp.spark.session import get_spark
 
     timer = StageTimer()
@@ -77,8 +77,8 @@ def run_pipeline(
     if "quality" in stages:
         reports = []
         with timer.stage("quality"):
-            silver_df = spark.read.format("delta").load(silver_path)
-            bronze_df = spark.read.format("delta").load(bronze_path)
+            silver_df = lake.read(spark, silver_path)
+            bronze_df = lake.read(spark, bronze_path)
             for year in years:
                 rows = result["bronze"].get(year)
                 if rows is None:
@@ -94,7 +94,7 @@ def run_pipeline(
 
     if "audit" in stages:
         with timer.stage("leakage_audit"):
-            train = spark.read.format("delta").load(gold_path).where(F.col("activity_year") == settings.train_year)
+            train = lake.read(spark, gold_path).where(F.col("activity_year") == settings.train_year)
             n = train.count()
             fraction = min(1.0, audit_sample_rows / max(n, 1))
             cols = [c for c in candidates() if c in train.columns]

@@ -12,6 +12,7 @@ from pyspark.sql import functions as F
 
 from ldp.log import get_logger
 from ldp.schema import DTI_BINS, SENTINELS, SILVER_CODES, SILVER_NUMERIC, SILVER_TEXT
+from ldp.spark import lake
 
 log = get_logger(__name__)
 
@@ -66,18 +67,8 @@ def to_silver(bronze: DataFrame) -> DataFrame:
 
 
 def write_silver(spark: SparkSession, bronze_path: str, silver_path: str, year: int) -> int:
-    bronze = spark.read.format("delta").load(bronze_path).where(F.col("activity_year") == F.lit(str(year)))
-    silver = to_silver(bronze)
-    (
-        silver.write.format("delta")
-        .mode("overwrite")
-        .option("replaceWhere", f"activity_year = {year}")
-        .partitionBy("activity_year")
-        .save(silver_path)
-    )
-    from delta.tables import DeltaTable
-
-    metrics = DeltaTable.forPath(spark, silver_path).history(1).select("operationMetrics").collect()[0][0]
-    rows = int(metrics.get("numOutputRows", "0"))
+    bronze = lake.read(spark, bronze_path).where(F.col("activity_year") == F.lit(str(year)))
+    lake.write(to_silver(bronze), silver_path, replace_where=f"activity_year = {year}", partition_by="activity_year")
+    rows = int(lake.last_operation(spark, silver_path)["metrics"].get("numOutputRows", "0"))
     log.info("silver_written", year=year, rows=rows)
     return rows
