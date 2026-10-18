@@ -28,8 +28,9 @@ BigQuery, drift and fairness monitoring with alerts, all from one command. **Met
 
 ## What went well
 
-- The integration tests caught nothing because the unit tests had pinned the contracts (NaN handling, signature
-  names, column order); the first run against real containers passed.
+- The unit tests had pinned the contracts (NaN handling in TF Serving's JSON, signature names, column order),
+  so the integration tests passed on their first run, after the emulator fix below that the compose stack had
+  already surfaced.
 
 ## What did not
 
