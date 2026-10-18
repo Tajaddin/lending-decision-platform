@@ -10,4 +10,5 @@ paths = [
 ]
 regexes = [
   '''local-dev-key-[a-z0-9-]+''',  # documented placeholder keys in .env.example and compose
+  '''ivy-delta-[0-9.]+''',  # actions/cache key name in ci.yml
 ]
