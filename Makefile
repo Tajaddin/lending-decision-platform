@@ -1,5 +1,5 @@
 .PHONY: install lint format typecheck test test-integration test-bats alerts-test check secret-scan download pipeline \
-        train model-card score-batch bench ablation up down replay load-test tf-validate bundle-validate backlog
+        train model-card score-batch bench ablation up down replay replay-report load-test tf-validate bundle-validate backlog
 
 YEARS ?= 2023,2024,2025
 RAW ?= data/raw
@@ -64,6 +64,9 @@ down:
 
 replay:             ## 5,000 real 2025 applications through the API at RATE per second
 	uv run ldp replay --url http://localhost:8200 --split data/sample/test --n 5000 --rate $(RATE) --api-key $(KEY)
+
+replay-report:      ## after `make replay`: BigQuery rows, monitor PSI/AIR and alerts -> reports/replay-monitor.json
+	python scripts/stack_report.py
 
 load-test:          ## k6 at RATE requests per second for 60 s against the compose stack
 	mkdir -p reports/k6 && docker run --rm --network ldp_default -v "$(CURDIR)/bench/k6:/scripts:ro" \

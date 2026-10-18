@@ -20,9 +20,9 @@ BigQuery, drift and fairness monitoring with alerts, all from one command. **Met
 
 ## Measured
 
-- Replaying 5,000 real 2025 applications at 50 req/s: 5,000 answered, 5,001 rows in BigQuery (one earlier smoke
-  request), referral rate 33.7%. The live monitor's PSI matched the offline analysis: credit score type 0.186
-  live vs 0.174 offline, loan purpose 0.160 vs 0.153.
+- Replaying 5,000 real 2025 applications at 50 req/s into a fresh stack (`reports/replay-monitor.json`): all
+  5,000 answered and stored in BigQuery, referral rate 33.6%, score PSI 0.021. The live monitor's PSI matched the
+  offline analysis: credit score type 0.185 live vs 0.174 offline, loan purpose 0.159 vs 0.153.
 - k6, one machine, 2 API workers: 0 failures and p99 36.2 ms up to 400 req/s; 600 req/s at p99 229.0 ms with
   0.34% of requests shed; 800 req/s sheds 30.8% fast and the next request is answered normally.
 
