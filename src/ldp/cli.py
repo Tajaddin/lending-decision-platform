@@ -226,5 +226,15 @@ def download(years: str = "2023,2024,2025", out_dir: Path = Path("data/raw")) ->
         subprocess.run(["bash", str(script), str(year), str(out_dir)], check=True)
 
 
+def run() -> None:
+    """The `ldp` entry point. Click ends even a successful command with SystemExit(0); Databricks serverless runs
+    wheel tasks in a kernel that reports any SystemExit as a failed task, so a clean exit returns instead."""
+    try:
+        app()
+    except SystemExit as exc:
+        if exc.code not in (0, None):
+            raise
+
+
 if __name__ == "__main__":
-    app()
+    run()

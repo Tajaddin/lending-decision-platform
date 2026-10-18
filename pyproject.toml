@@ -54,7 +54,7 @@ dev = [
 ]
 
 [project.scripts]
-ldp = "ldp.cli:app"
+ldp = "ldp.cli:run"
 
 [build-system]
 requires = ["hatchling"]
