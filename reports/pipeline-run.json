@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-10-18T07:03:38+00:00",
+  "host": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpus": 20,
+    "mem_total_gb": 15.5,
+    "cpu_model": "13th Gen Intel(R) Core(TM) i5-13600KF"
+  },
+  "years": [
+    2023,
+    2024,
+    2025
+  ],
+  "bronze": {
+    "2023": 11483889,
+    "2024": 12229298,
+    "2025": 13543606
+  },
+  "silver": {
+    "2023": 11483889,
+    "2024": 12229298,
+    "2025": 13543606
+  },
+  "gold": {
+    "2025": {
+      "rows": 5444487,
+      "denial_rate": 0.17770820281139435
+    },
+    "2024": {
+      "rows": 5007151,
+      "denial_rate": 0.18161245786276467
+    },
+    "2023": {
+      "rows": 4629490,
+      "denial_rate": 0.18646654383096195
+    }
+  },
+  "leakage_flagged": [
+    "combined_loan_to_value_ratio",
+    "aus_1",
+    "initially_payable_to_institution",
+    "interest_rate",
+    "rate_spread",
+    "total_loan_costs",
+    "origination_charges",
+    "discount_points",
+    "lender_credits",
+    "hoepa_status",
+    "purchaser_type",
+    "denial_reason_1",
+    "denial_reason_2"
+  ],
+  "leakage_audit_enforced": true,
+  "timings_s": {
+    "bronze_2023": 44.97,
+    "silver_2023": 63.89,
+    "bronze_2024": 38.01,
+    "silver_2024": 68.75,
+    "bronze_2025": 40.1,
+    "silver_2025": 74.33,
+    "quality": 4.15,
+    "gold": 32.62,
+    "leakage_audit": 5.71,
+    "export": 11.74
+  },
+  "spark": {
+    "master": "local[*]",
+    "version": "4.2.0",
+    "default_parallelism": 20
+  }
+}

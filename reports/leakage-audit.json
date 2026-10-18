@@ -1,0 +1,452 @@
+{
+  "year": 2023,
+  "rows": 599846,
+  "enforced": true,
+  "thresholds": {
+    "availability_gap": 0.1,
+    "univariate_auc": 0.8,
+    "min_rows_per_class": 1000
+  },
+  "flagged": [
+    "combined_loan_to_value_ratio",
+    "aus_1",
+    "initially_payable_to_institution",
+    "interest_rate",
+    "rate_spread",
+    "total_loan_costs",
+    "origination_charges",
+    "discount_points",
+    "lender_credits",
+    "hoepa_status",
+    "purchaser_type",
+    "denial_reason_1",
+    "denial_reason_2"
+  ],
+  "fields": [
+    {
+      "field": "loan_amount",
+      "kind": "numeric",
+      "available_approved": 1.0,
+      "available_denied": 1.0,
+      "availability_gap": 0.0,
+      "auc_value": 0.6560365710533644,
+      "auc_missing_flag": 0.5,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "income",
+      "kind": "numeric",
+      "available_approved": 0.9896634580915294,
+      "available_denied": 0.9730736512200582,
+      "availability_gap": 0.01658980687147127,
+      "auc_value": 0.6860188664719387,
+      "auc_missing_flag": 0.5082949034357356,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "property_value",
+      "kind": "numeric",
+      "available_approved": 0.9920458200097917,
+      "available_denied": 0.9270203716140587,
+      "availability_gap": 0.06502544839573299,
+      "auc_value": 0.645393972206276,
+      "auc_missing_flag": 0.5325127241978665,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "debt_to_income_ratio",
+      "kind": "numeric",
+      "available_approved": 0.9908392755817121,
+      "available_denied": 0.9466129393328856,
+      "availability_gap": 0.04422633624882655,
+      "auc_value": 0.6562237978135074,
+      "auc_missing_flag": 0.5221131681244132,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "loan_term",
+      "kind": "numeric",
+      "available_approved": 0.9990986764883617,
+      "available_denied": 0.9928363554958585,
+      "availability_gap": 0.006262320992503234,
+      "auc_value": 0.608467149794467,
+      "auc_missing_flag": 0.5031311604962516,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "loan_type",
+      "kind": "categorical",
+      "available_approved": 1.0,
+      "available_denied": 1.0,
+      "availability_gap": 0.0,
+      "auc_value": 0.522796590250738,
+      "auc_missing_flag": 0.5,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "loan_purpose",
+      "kind": "categorical",
+      "available_approved": 1.0,
+      "available_denied": 1.0,
+      "availability_gap": 0.0,
+      "auc_value": 0.5993838268800663,
+      "auc_missing_flag": 0.5,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "occupancy_type",
+      "kind": "categorical",
+      "available_approved": 1.0,
+      "available_denied": 1.0,
+      "availability_gap": 0.0,
+      "auc_value": 0.5045895521712572,
+      "auc_missing_flag": 0.5,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "construction_method",
+      "kind": "categorical",
+      "available_approved": 1.0,
+      "available_denied": 1.0,
+      "availability_gap": 0.0,
+      "auc_value": 0.6261179555727636,
+      "auc_missing_flag": 0.5,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "total_units",
+      "kind": "categorical",
+      "available_approved": 1.0,
+      "available_denied": 1.0,
+      "availability_gap": 0.0,
+      "auc_value": 0.5011207779542248,
+      "auc_missing_flag": 0.5,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "applicant_credit_score_type",
+      "kind": "categorical",
+      "available_approved": 0.9221092608942358,
+      "available_denied": 0.9012222968435192,
+      "availability_gap": 0.02088696405071666,
+      "auc_value": 0.5944035553157656,
+      "auc_missing_flag": 0.5104434820253584,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "co_applicant_credit_score_type",
+      "kind": "categorical",
+      "available_approved": 0.7516464517556348,
+      "available_denied": 0.8119274680993955,
+      "availability_gap": 0.06028101634376071,
+      "auc_value": 0.5768226422944644,
+      "auc_missing_flag": 0.5301405081718804,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "submission_of_application",
+      "kind": "categorical",
+      "available_approved": 0.9999918061498942,
+      "available_denied": 0.9999462726662189,
+      "availability_gap": 4.553348367530852e-05,
+      "auc_value": 0.5050667823679367,
+      "auc_missing_flag": 0.5000227667418377,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "preapproval",
+      "kind": "categorical",
+      "available_approved": 1.0,
+      "available_denied": 1.0,
+      "availability_gap": 0.0,
+      "auc_value": 0.5255453348698537,
+      "auc_missing_flag": 0.5,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "conforming_loan_limit",
+      "kind": "categorical",
+      "available_approved": 0.9999569822869445,
+      "available_denied": 0.9999014998880681,
+      "availability_gap": 5.5482398876427474e-05,
+      "auc_value": 0.5061035127061759,
+      "auc_missing_flag": 0.5000277411994383,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": true
+    },
+    {
+      "field": "combined_loan_to_value_ratio",
+      "kind": "numeric",
+      "available_approved": 0.9550874591075668,
+      "available_denied": 0.7305036937541974,
+      "availability_gap": 0.22458376535336932,
+      "auc_value": 0.5111876255903398,
+      "auc_missing_flag": 0.6122918826766847,
+      "flagged": true,
+      "reasons": [
+        "filled in for 96% of approvals but 73% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "aus_1",
+      "kind": "categorical",
+      "available_approved": 0.8751011428372435,
+      "available_denied": 0.5303066935303336,
+      "availability_gap": 0.34479444930690994,
+      "auc_value": 0.7123319968162353,
+      "auc_missing_flag": 0.672397224653455,
+      "flagged": true,
+      "reasons": [
+        "filled in for 88% of approvals but 53% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "initially_payable_to_institution",
+      "kind": "categorical",
+      "available_approved": 0.9965155652425073,
+      "available_denied": 0.873973584060891,
+      "availability_gap": 0.1225419811816163,
+      "auc_value": 0.5698900483898359,
+      "auc_missing_flag": 0.5612709905908081,
+      "flagged": true,
+      "reasons": [
+        "filled in for 100% of approvals but 87% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "interest_rate",
+      "kind": "numeric",
+      "available_approved": 0.9987360986211798,
+      "available_denied": 0.0,
+      "availability_gap": 0.9987360986211798,
+      "auc_value": 0.5177284189351682,
+      "auc_missing_flag": 0.99936804931059,
+      "flagged": true,
+      "reasons": [
+        "filled in for 100% of approvals but 0% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "rate_spread",
+      "kind": "numeric",
+      "available_approved": 0.9696008161074705,
+      "available_denied": 0.0,
+      "availability_gap": 0.9696008161074705,
+      "auc_value": 0.5002642516659122,
+      "auc_missing_flag": 0.9848004080537353,
+      "flagged": true,
+      "reasons": [
+        "filled in for 97% of approvals but 0% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "total_loan_costs",
+      "kind": "numeric",
+      "available_approved": 0.9205626716867655,
+      "available_denied": 0.0,
+      "availability_gap": 0.9205626716867655,
+      "auc_value": 0.5,
+      "auc_missing_flag": 0.9602813358433827,
+      "flagged": true,
+      "reasons": [
+        "filled in for 92% of approvals but 0% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "total_points_and_fees",
+      "kind": "numeric",
+      "available_approved": 0.015289724297428565,
+      "available_denied": 0.0,
+      "availability_gap": 0.015289724297428565,
+      "auc_value": 0.5,
+      "auc_missing_flag": 0.5076448621487143,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": false
+    },
+    {
+      "field": "origination_charges",
+      "kind": "numeric",
+      "available_approved": 0.9319275417835143,
+      "available_denied": 0.0,
+      "availability_gap": 0.9319275417835143,
+      "auc_value": 0.5000010242312632,
+      "auc_missing_flag": 0.9659637708917572,
+      "flagged": true,
+      "reasons": [
+        "filled in for 93% of approvals but 0% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "discount_points",
+      "kind": "numeric",
+      "available_approved": 0.5694275161777328,
+      "available_denied": 0.0,
+      "availability_gap": 0.5694275161777328,
+      "auc_value": 0.5,
+      "auc_missing_flag": 0.7847137580888665,
+      "flagged": true,
+      "reasons": [
+        "filled in for 57% of approvals but 0% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "lender_credits",
+      "kind": "numeric",
+      "available_approved": 0.3106636813739448,
+      "available_denied": 0.0,
+      "availability_gap": 0.3106636813739448,
+      "auc_value": 0.5,
+      "auc_missing_flag": 0.6553318406869724,
+      "flagged": true,
+      "reasons": [
+        "filled in for 31% of approvals but 0% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "hoepa_status",
+      "kind": "categorical",
+      "available_approved": 0.9072415198772561,
+      "available_denied": 0.0,
+      "availability_gap": 0.9072415198772561,
+      "auc_value": 0.9534078034055538,
+      "auc_missing_flag": 0.953620759938628,
+      "flagged": true,
+      "reasons": [
+        "filled in for 91% of approvals but 0% of denials",
+        "separates the classes alone (AUC 0.953)"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "purchaser_type",
+      "kind": "categorical",
+      "available_approved": 0.7461729598849584,
+      "available_denied": 0.0,
+      "availability_gap": 0.7461729598849584,
+      "auc_value": 0.8730323115161558,
+      "auc_missing_flag": 0.8730864799424791,
+      "flagged": true,
+      "reasons": [
+        "filled in for 75% of approvals but 0% of denials",
+        "separates the classes alone (AUC 0.873)"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "intro_rate_period",
+      "kind": "numeric",
+      "available_approved": 0.08027719794907932,
+      "available_denied": 0.04736064472800537,
+      "availability_gap": 0.03291655322107395,
+      "auc_value": 0.5020693136004292,
+      "auc_missing_flag": 0.516458276610537,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": false
+    },
+    {
+      "field": "prepayment_penalty_term",
+      "kind": "numeric",
+      "available_approved": 0.0018927793744405136,
+      "available_denied": 0.0011730467875531677,
+      "availability_gap": 0.0007197325868873459,
+      "auc_value": 0.5002918482944312,
+      "auc_missing_flag": 0.5003598662934436,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": false
+    },
+    {
+      "field": "denial_reason_1",
+      "kind": "categorical",
+      "available_approved": 6.759926337287548e-05,
+      "available_denied": 1.0,
+      "availability_gap": 0.9999324007366271,
+      "auc_value": 1.0,
+      "auc_missing_flag": 0.9999662003683135,
+      "flagged": true,
+      "reasons": [
+        "filled in for 0% of approvals but 100% of denials",
+        "separates the classes alone (AUC 1.000)"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "denial_reason_2",
+      "kind": "categorical",
+      "available_approved": 0.0,
+      "available_denied": 0.22695321244683234,
+      "availability_gap": 0.22695321244683234,
+      "auc_value": 0.6134884303136512,
+      "auc_missing_flag": 0.6134766062234162,
+      "flagged": true,
+      "reasons": [
+        "filled in for 0% of approvals but 23% of denials"
+      ],
+      "is_feature": false
+    },
+    {
+      "field": "denial_reason_3",
+      "kind": "categorical",
+      "available_approved": 0.0,
+      "available_denied": 0.03715245130960376,
+      "availability_gap": 0.03715245130960376,
+      "auc_value": 0.5189142387889174,
+      "auc_missing_flag": 0.5185762256548019,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": false
+    },
+    {
+      "field": "denial_reason_4",
+      "kind": "categorical",
+      "available_approved": 0.0,
+      "available_denied": 0.006035370494739198,
+      "availability_gap": 0.006035370494739198,
+      "auc_value": 0.5031077099949702,
+      "auc_missing_flag": 0.5030176852473696,
+      "flagged": false,
+      "reasons": [],
+      "is_feature": false
+    }
+  ]
+}
