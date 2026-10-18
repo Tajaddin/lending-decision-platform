@@ -75,7 +75,11 @@ services:
   sink:
     <<: *app
     command: ["ldp", "sink", "--metrics-port", "9109"]
-    healthcheck: { disable: true }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9109/metrics', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     depends_on:
       bootstrap: { condition: service_completed_successfully }
 
@@ -86,7 +90,11 @@ services:
       <<: *app-env
       LDP_MONITOR_WINDOW_HOURS: "24"
     ports: ["9108:9108"]
-    healthcheck: { disable: true }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9108/metrics', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     depends_on:
       bootstrap: { condition: service_completed_successfully }
 
