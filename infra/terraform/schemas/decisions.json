@@ -1,0 +1,142 @@
+[
+  {
+    "name": "event_id",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "application_id",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "client",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "decided_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "model_version",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "probability",
+    "type": "FLOAT64",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "decision",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "threshold",
+    "type": "FLOAT64",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "reasons",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "loan_amount",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "income",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "property_value",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "debt_to_income_ratio",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "loan_term",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "loan_type",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "loan_purpose",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "occupancy_type",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "construction_method",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "total_units",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "applicant_credit_score_type",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "co_applicant_credit_score_type",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "submission_of_application",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "preapproval",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "conforming_loan_limit",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "derived_race",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "derived_ethnicity",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "derived_sex",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "applicant_age_above_62",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  }
+]
