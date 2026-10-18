@@ -54,6 +54,69 @@ def bench_silver(
 
 
 @app.command()
+def train(
+    epochs: int = 12,
+    version: Annotated[int, typer.Option(help="model version folder under models/<name>/")] = 1,
+    skip_baselines: bool = False,
+) -> None:
+    """Train, calibrate and evaluate on the out-of-time split; export the SavedModel and reports."""
+    from ldp.training.train import train_and_evaluate
+
+    result = train_and_evaluate(get_settings(), epochs=epochs, version=version, skip_baselines=skip_baselines)
+    tf_test = result["models"]["tensorflow"]["test"]
+    typer.echo(f"test AUC {tf_test['auc']:.4f}  ECE {tf_test['ece']:.4f}  threshold {result['threshold']:.4f}")
+
+
+@app.command()
+def model_card(version: int = 1, out: Path = Path("docs/MODEL-CARD.md")) -> None:
+    """Render the model card from reports/*.json and the model's metadata."""
+    from ldp.training.model_card import write
+
+    settings = get_settings()
+    write(Path(settings.reports_dir), Path(settings.models_dir) / settings.model_name / str(version), out)
+    typer.echo(f"wrote {out}")
+
+
+@app.command()
+def score_batch(
+    year: int = 2025,
+    version: int = 1,
+    partitions: int = 8,
+    master: Annotated[str | None, typer.Option(help="Spark master")] = None,
+) -> None:
+    """Score one year of the gold table in Spark with the SavedModel; writes the scores Delta table."""
+    import time
+
+    from ldp.pipeline import host_info, write_json
+    from ldp.spark.score import score_year
+    from ldp.spark.session import get_spark
+
+    settings = get_settings()
+    spark = get_spark("ldp-score", master=master)
+    model_dir = str((Path(settings.models_dir) / settings.model_name / str(version)).resolve())
+    start = time.perf_counter()
+    scored = score_year(spark, settings.lake("gold"), model_dir, settings.lake("scores"), year, partitions)
+    rows = scored.count()
+    seconds = time.perf_counter() - start
+    referred = scored.where("refer").count()
+    write_json(
+        {
+            "benchmark": "Spark batch scoring with the SavedModel (mapInPandas)",
+            "year": year,
+            "rows": rows,
+            "referred": referred,
+            "seconds": round(seconds, 1),
+            "rows_per_s": round(rows / seconds),
+            "partitions": partitions,
+            "master": spark.sparkContext.master,
+            "host": host_info(),
+        },
+        Path(settings.reports_dir) / "batch-scoring.json",
+    )
+    typer.echo(f"scored {rows:,} rows in {seconds:.1f}s ({rows / seconds:,.0f}/s), referred {referred:,}")
+
+
+@app.command()
 def download(years: str = "2023,2024,2025", out_dir: Path = Path("data/raw")) -> None:
     """Download and unzip the national snapshot files (wraps scripts/download_hmda.sh)."""
     import subprocess

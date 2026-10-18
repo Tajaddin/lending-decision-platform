@@ -59,7 +59,9 @@ class Settings(BaseSettings):
         return v.rstrip("/")
 
     def lake(self, layer: str) -> str:
-        return f"{self.lake_root}/{layer}"
+        """A Delta path, or `uc:catalog.schema.layer` when lake_root is `uc:catalog.schema` (Databricks)."""
+        sep = "." if self.lake_root.startswith("uc:") else "/"
+        return f"{self.lake_root}{sep}{layer}"
 
     def client_keys(self) -> dict[str, str]:
         """key -> client name. Malformed entries are rejected rather than silently ignored."""

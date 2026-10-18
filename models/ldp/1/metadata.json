@@ -1,0 +1,446 @@
+{
+  "model_name": "ldp",
+  "version": 1,
+  "trained_at": "2026-10-18T07:20:29+00:00",
+  "threshold": 0.13817642455716747,
+  "threshold_rule": "refer when p(denial) >= threshold; threshold set on 2024 to catch 80% of denials",
+  "calibration": {
+    "a": 0.9583689672689003,
+    "b": -0.10243769987283693
+  },
+  "attribution_groups": [
+    {
+      "name": "loan_amount",
+      "kind": "numeric",
+      "reason": "Amount of credit requested is too high for the income or collateral",
+      "description": "Loan amount in USD (HMDA rounds to the $10,000 midpoint)"
+    },
+    {
+      "name": "income",
+      "kind": "numeric",
+      "reason": "Income insufficient for the amount of credit requested",
+      "description": "Gross annual income relied on, in thousands of USD"
+    },
+    {
+      "name": "property_value",
+      "kind": "numeric",
+      "reason": "Value or type of collateral not sufficient",
+      "description": "Property value in USD (rounded to the $10,000 midpoint)"
+    },
+    {
+      "name": "debt_to_income_ratio",
+      "kind": "numeric",
+      "reason": "Excessive obligations in relation to income",
+      "description": "Debt-to-income ratio, percent (bins mapped to midpoints)"
+    },
+    {
+      "name": "loan_term",
+      "kind": "numeric",
+      "reason": "",
+      "description": "Loan term in months"
+    },
+    {
+      "name": "loan_to_value",
+      "kind": "derived",
+      "reason": "Value or type of collateral not sufficient",
+      "description": "loan_amount / property_value"
+    },
+    {
+      "name": "loan_to_income",
+      "kind": "derived",
+      "reason": "Income insufficient for the amount of credit requested",
+      "description": "loan_amount / (income * 1000)"
+    },
+    {
+      "name": "loan_type",
+      "kind": "categorical",
+      "reason": "",
+      "description": "1 conventional, 2 FHA, 3 VA, 4 USDA"
+    },
+    {
+      "name": "loan_purpose",
+      "kind": "categorical",
+      "reason": "",
+      "description": "1 purchase, 31 refinance, 32 cash-out refinance"
+    },
+    {
+      "name": "occupancy_type",
+      "kind": "categorical",
+      "reason": "",
+      "description": "1 principal residence, 2 second home, 3 investment"
+    },
+    {
+      "name": "construction_method",
+      "kind": "categorical",
+      "reason": "Value or type of collateral not sufficient",
+      "description": "1 site-built, 2 manufactured home"
+    },
+    {
+      "name": "total_units",
+      "kind": "categorical",
+      "reason": "Value or type of collateral not sufficient",
+      "description": "Dwelling units, 1 to 4"
+    },
+    {
+      "name": "applicant_credit_score_type",
+      "kind": "categorical",
+      "reason": "",
+      "description": "Credit scoring model used for the applicant"
+    },
+    {
+      "name": "co_applicant_credit_score_type",
+      "kind": "categorical",
+      "reason": "",
+      "description": "Credit scoring model for the co-applicant; 10 means no co-applicant"
+    },
+    {
+      "name": "submission_of_application",
+      "kind": "categorical",
+      "reason": "",
+      "description": "Submitted directly to the institution or not"
+    },
+    {
+      "name": "preapproval",
+      "kind": "categorical",
+      "reason": "",
+      "description": "1 preapproval requested, 2 not requested"
+    },
+    {
+      "name": "conforming_loan_limit",
+      "kind": "categorical",
+      "reason": "Amount of credit requested is too high for the income or collateral",
+      "description": "C conforming, NC nonconforming, U undetermined"
+    }
+  ],
+  "baseline_logit": -2.8305084705352783,
+  "train_rows": 4629490,
+  "train_year": 2023,
+  "valid_year": 2024,
+  "gold_delta_version": 0,
+  "reference_bins": {
+    "loan_amount": {
+      "kind": "numeric",
+      "edges": [
+        105000.0,
+        155000.0,
+        195000.0,
+        235000.0,
+        275000.0,
+        315000.0,
+        375000.0,
+        455000.0,
+        595000.0
+      ],
+      "expected": [
+        0.08944397763036534,
+        0.10727898753426403,
+        0.09903769097675987,
+        0.09907160399957662,
+        0.09467759947640021,
+        0.09166819671281286,
+        0.1114628177185824,
+        0.10381921118740942,
+        0.09994902246251747,
+        0.10359089230131181,
+        0.0
+      ]
+    },
+    "income": {
+      "kind": "numeric",
+      "edges": [
+        45.0,
+        59.0,
+        71.0,
+        84.0,
+        98.0,
+        115.0,
+        137.0,
+        171.0,
+        241.0
+      ],
+      "expected": [
+        0.09775072416184072,
+        0.09827626801224325,
+        0.09566734132701442,
+        0.10154639063914167,
+        0.09815811244867145,
+        0.09767900999894157,
+        0.09932368360229744,
+        0.10048363858653978,
+        0.098492922546544,
+        0.09933448392803527,
+        0.013287424748730422
+      ]
+    },
+    "property_value": {
+      "kind": "numeric",
+      "edges": [
+        145000.0,
+        195000.0,
+        255000.0,
+        295000.0,
+        345000.0,
+        395000.0,
+        465000.0,
+        575000.0,
+        775000.0
+      ],
+      "expected": [
+        0.09555674599145911,
+        0.08498430712670293,
+        0.11325048763470706,
+        0.08476074038392999,
+        0.10230694957759925,
+        0.0925490712799898,
+        0.1031694635910219,
+        0.10248666699787666,
+        0.10130748743382101,
+        0.09963430097051727,
+        0.019993779012375014
+      ]
+    },
+    "debt_to_income_ratio": {
+      "kind": "numeric",
+      "edges": [
+        25.0,
+        33.0,
+        38.0,
+        41.0,
+        44.0,
+        46.0,
+        49.0,
+        55.0
+      ],
+      "expected": [
+        0.04396704604610875,
+        0.12839081626701862,
+        0.1984756420253635,
+        0.10085084966162579,
+        0.11376739122451933,
+        0.07708041274524839,
+        0.10742025579491478,
+        0.049847391397324546,
+        0.1629743233055909,
+        0.017225871532285414
+      ]
+    },
+    "loan_term": {
+      "kind": "numeric",
+      "edges": [
+        300.0,
+        360.0
+      ],
+      "expected": [
+        0.0815634119525045,
+        0.04824915919464131,
+        0.8681299667997987,
+        0.00205746205305552
+      ]
+    },
+    "loan_type": {
+      "kind": "categorical",
+      "categories": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "expected": [
+        0.6855632045862503,
+        0.20476359166992478,
+        0.10121762872368231,
+        0.008455575020142608,
+        0.0
+      ]
+    },
+    "loan_purpose": {
+      "kind": "categorical",
+      "categories": [
+        "1",
+        "32",
+        "31"
+      ],
+      "expected": [
+        0.8015939120723881,
+        0.15065719982114661,
+        0.04774888810646529,
+        1.1102230246251565e-16
+      ]
+    },
+    "occupancy_type": {
+      "kind": "categorical",
+      "categories": [
+        "1",
+        "2",
+        "3"
+      ],
+      "expected": [
+        0.9510820846356726,
+        0.025218976604334385,
+        0.023698938759993002,
+        1.1102230246251565e-16
+      ]
+    },
+    "construction_method": {
+      "kind": "categorical",
+      "categories": [
+        "1",
+        "2"
+      ],
+      "expected": [
+        0.9038723487900395,
+        0.09612765120996049,
+        0.0
+      ]
+    },
+    "total_units": {
+      "kind": "categorical",
+      "categories": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "expected": [
+        0.9827466956403406,
+        0.013611218514350393,
+        0.0023011174017008354,
+        0.0013409684436082592,
+        0.0
+      ]
+    },
+    "applicant_credit_score_type": {
+      "kind": "categorical",
+      "categories": [
+        "1",
+        "3",
+        "2",
+        "9",
+        "7",
+        "8",
+        "4",
+        "6",
+        "11",
+        "5",
+        "1111"
+      ],
+      "expected": [
+        0.3344294943935509,
+        0.2736601655905942,
+        0.2420899494328749,
+        0.08173124901447028,
+        0.028983538143510408,
+        0.02646382214887601,
+        0.008886940030111309,
+        0.0020436376361111053,
+        0.0013921619876055462,
+        0.00024927151802898377,
+        6.977010426634467e-05,
+        0.0
+      ]
+    },
+    "co_applicant_credit_score_type": {
+      "kind": "categorical",
+      "categories": [
+        "10",
+        "9",
+        "1",
+        "3",
+        "2",
+        "8",
+        "7",
+        "4",
+        "11",
+        "6",
+        "5",
+        "1111"
+      ],
+      "expected": [
+        0.5638158846870822,
+        0.23683839904611523,
+        0.07038118669659077,
+        0.05978325906309334,
+        0.05009147875899937,
+        0.008934461463357735,
+        0.007983600785399688,
+        0.0012318851536562343,
+        0.0005633449904849131,
+        0.00021060635188757294,
+        9.612289906663585e-05,
+        6.977010426634467e-05,
+        -2.220446049250313e-16
+      ]
+    },
+    "submission_of_application": {
+      "kind": "categorical",
+      "categories": [
+        "1",
+        "2",
+        "1111"
+      ],
+      "expected": [
+        0.812890404774608,
+        0.18708216239801792,
+        2.7432827374073602e-05,
+        0.0
+      ]
+    },
+    "preapproval": {
+      "kind": "categorical",
+      "categories": [
+        "2",
+        "1"
+      ],
+      "expected": [
+        0.9579018423195643,
+        0.04209815768043564,
+        0.0
+      ]
+    },
+    "conforming_loan_limit": {
+      "kind": "categorical",
+      "categories": [
+        "C",
+        "NC",
+        "U"
+      ],
+      "expected": [
+        0.9664474920563604,
+        0.033501962419186564,
+        5.0545524453017504e-05,
+        0.0
+      ]
+    },
+    "score": {
+      "kind": "numeric",
+      "edges": [
+        0.01998951994661915,
+        0.029777235409683186,
+        0.039253444864864435,
+        0.05121854688109621,
+        0.06701181854556282,
+        0.09100480019130329,
+        0.13470833512230815,
+        0.227302671073432,
+        0.5947810410635402
+      ],
+      "expected": [
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.099999,
+        0.100001,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.0
+      ]
+    }
+  },
+  "metrics": {
+    "test_auc": 0.8697675781669613,
+    "test_ece": 0.010269663595665522
+  }
+}

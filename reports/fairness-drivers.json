@@ -1,0 +1,147 @@
+{
+  "model_version": 1,
+  "split": "test 2025",
+  "comparisons": [
+    {
+      "dimension": "age",
+      "group": "Yes",
+      "reference": "No",
+      "mean_logit_gap": 0.5920189619064331,
+      "attribution_gap_sum": 0.5933358073234558,
+      "drivers": [
+        {
+          "input": "loan_purpose",
+          "gap": 0.36555635929107666
+        },
+        {
+          "input": "preapproval",
+          "gap": 0.1394762098789215
+        },
+        {
+          "input": "loan_to_value",
+          "gap": -0.1072695255279541
+        },
+        {
+          "input": "debt_to_income_ratio",
+          "gap": 0.09232017397880554
+        },
+        {
+          "input": "loan_amount",
+          "gap": 0.0680280476808548
+        },
+        {
+          "input": "loan_type",
+          "gap": -0.046686965972185135
+        }
+      ],
+      "group_profile": {
+        "median_income_k": 84.0,
+        "median_loan_amount": 245000.0,
+        "median_dti": 42.0,
+        "share_refinance": 0.511,
+        "observed_denial_rate": 0.23255
+      },
+      "reference_profile": {
+        "median_income_k": 111.0,
+        "median_loan_amount": 315000.0,
+        "median_dti": 41.0,
+        "share_refinance": 0.28225,
+        "observed_denial_rate": 0.17335
+      }
+    },
+    {
+      "dimension": "race",
+      "group": "Black or African American",
+      "reference": "White",
+      "mean_logit_gap": 1.0019328594207764,
+      "attribution_gap_sum": 1.001173734664917,
+      "drivers": [
+        {
+          "input": "debt_to_income_ratio",
+          "gap": 0.3463490903377533
+        },
+        {
+          "input": "loan_to_value",
+          "gap": 0.13018497824668884
+        },
+        {
+          "input": "loan_type",
+          "gap": 0.12830564379692078
+        },
+        {
+          "input": "preapproval",
+          "gap": 0.11261880397796631
+        },
+        {
+          "input": "co_applicant_credit_score_type",
+          "gap": 0.061260730028152466
+        },
+        {
+          "input": "loan_purpose",
+          "gap": 0.051670342683792114
+        }
+      ],
+      "group_profile": {
+        "median_income_k": 85.0,
+        "median_loan_amount": 275000.0,
+        "median_dti": 44.0,
+        "share_refinance": 0.34425,
+        "observed_denial_rate": 0.29845
+      },
+      "reference_profile": {
+        "median_income_k": 106.0,
+        "median_loan_amount": 295000.0,
+        "median_dti": 40.0,
+        "share_refinance": 0.30265,
+        "observed_denial_rate": 0.15025
+      }
+    },
+    {
+      "dimension": "sex",
+      "group": "Female",
+      "reference": "Male",
+      "mean_logit_gap": 0.22270238399505615,
+      "attribution_gap_sum": 0.2224041074514389,
+      "drivers": [
+        {
+          "input": "debt_to_income_ratio",
+          "gap": 0.1522466242313385
+        },
+        {
+          "input": "loan_amount",
+          "gap": 0.049635641276836395
+        },
+        {
+          "input": "loan_type",
+          "gap": 0.04917746037244797
+        },
+        {
+          "input": "income",
+          "gap": 0.026464350521564484
+        },
+        {
+          "input": "loan_term",
+          "gap": 0.025107471272349358
+        },
+        {
+          "input": "construction_method",
+          "gap": 0.02408151514828205
+        }
+      ],
+      "group_profile": {
+        "median_income_k": 80.0,
+        "median_loan_amount": 245000.0,
+        "median_dti": 42.0,
+        "share_refinance": 0.30815,
+        "observed_denial_rate": 0.2227
+      },
+      "reference_profile": {
+        "median_income_k": 96.0,
+        "median_loan_amount": 285000.0,
+        "median_dti": 41.0,
+        "share_refinance": 0.3275,
+        "observed_denial_rate": 0.18475
+      }
+    }
+  ]
+}

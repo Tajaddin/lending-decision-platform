@@ -11,7 +11,6 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from delta.tables import DeltaTable
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
@@ -29,6 +28,7 @@ from ldp.schema import (
     PROTECTED,
     TRACT_DEMOGRAPHICS,
 )
+from ldp.spark import lake
 
 log = get_logger(__name__)
 
@@ -76,12 +76,10 @@ def gold_columns() -> list[str]:
 
 
 def write_gold(spark: SparkSession, silver_path: str, gold_path: str, years: list[int]) -> dict[int, dict[str, float]]:
-    silver = spark.read.format("delta").load(silver_path).where(F.col("activity_year").isin(*years))
-    gold = population(silver).select(*gold_columns())
-    gold.write.format("delta").mode("overwrite").partitionBy("activity_year").save(gold_path)
+    silver = lake.read(spark, silver_path).where(F.col("activity_year").isin(*years))
+    lake.write(population(silver).select(*gold_columns()), gold_path, partition_by="activity_year")
     stats = (
-        spark.read.format("delta")
-        .load(gold_path)
+        lake.read(spark, gold_path)
         .groupBy("activity_year")
         .agg(F.count(F.lit(1)).alias("rows"), F.avg(LABEL).alias("denial_rate"))
         .collect()
@@ -106,8 +104,8 @@ def export_splits(
 ) -> list[SplitExport]:
     """Write Parquet per split for TensorFlow. The gold Delta version goes into the manifest, so the model
     card can name the exact table version the model was trained on (Delta time travel can rebuild it)."""
-    version = int(DeltaTable.forPath(spark, gold_path).history(1).select("version").collect()[0][0])
-    gold = spark.read.format("delta").option("versionAsOf", version).load(gold_path)
+    version = lake.last_operation(spark, gold_path)["version"]
+    gold = lake.read(spark, gold_path, version=version)
     exports = []
     for split, year in splits.items():
         part = gold.where(F.col("activity_year") == year).select(*EXPORT_COLUMNS)

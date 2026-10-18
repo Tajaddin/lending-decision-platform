@@ -1,0 +1,154 @@
+{
+  "model": "xgboost, 1M-row 2023 sample, early-stopped on 500K of 2024, scored on 1M of 2025",
+  "operating_rule": "refer when p >= threshold catching 80% of 2024 denials (per variant)",
+  "all_inputs": {
+    "test_auc": 0.8697115428217095,
+    "referral_rate": 0.332434,
+    "air age 62+ vs under 62": 0.7830831818440431,
+    "air Black vs White": 0.7631939249398902,
+    "air Female vs Male": 0.9505023669616903
+  },
+  "lenders_observed": {
+    "air age 62+ vs under 62": 0.9296509093148431,
+    "air Black vs White": 0.8265737435238114,
+    "air Female vs Male": 0.9592251787658026
+  },
+  "seconds": 931.8,
+  "ablations": [
+    {
+      "dropped": "debt_to_income_ratio",
+      "test_auc": 0.8295773601264845,
+      "referral_rate": 0.411134,
+      "air age 62+ vs under 62": 0.7328753577595523,
+      "air Black vs White": 0.7715295694209695,
+      "air Female vs Male": 0.9332752029572001,
+      "auc_drop": 0.04013418269522495
+    },
+    {
+      "dropped": "loan_purpose",
+      "test_auc": 0.8482910406818591,
+      "referral_rate": 0.356239,
+      "air age 62+ vs under 62": 0.800855848808551,
+      "air Black vs White": 0.7394211125389526,
+      "air Female vs Male": 0.9197743685577567,
+      "auc_drop": 0.02142050213985036
+    },
+    {
+      "dropped": "property_value (and loan_to_value)",
+      "test_auc": 0.8532309070945988,
+      "referral_rate": 0.35358900000000004,
+      "air age 62+ vs under 62": 0.7106347834678963,
+      "air Black vs White": 0.7680257933589735,
+      "air Female vs Male": 0.9370946900488809,
+      "auc_drop": 0.01648063572711067
+    },
+    {
+      "dropped": "loan_type",
+      "test_auc": 0.8599401620271522,
+      "referral_rate": 0.35110600000000003,
+      "air age 62+ vs under 62": 0.7533491297037734,
+      "air Black vs White": 0.7580044695989722,
+      "air Female vs Male": 0.9596358975471337,
+      "auc_drop": 0.009771380794557305
+    },
+    {
+      "dropped": "loan_amount (and both ratios)",
+      "test_auc": 0.8619574676482173,
+      "referral_rate": 0.34109900000000004,
+      "air age 62+ vs under 62": 0.74758262150071,
+      "air Black vs White": 0.7639283231897902,
+      "air Female vs Male": 0.9382197941918218,
+      "auc_drop": 0.0077540751734921365
+    },
+    {
+      "dropped": "income (and loan_to_income)",
+      "test_auc": 0.8655400787339276,
+      "referral_rate": 0.34109,
+      "air age 62+ vs under 62": 0.7778516126844569,
+      "air Black vs White": 0.763821321263387,
+      "air Female vs Male": 0.9515126762863545,
+      "auc_drop": 0.0041714640877819065
+    },
+    {
+      "dropped": "preapproval",
+      "test_auc": 0.8673791550633052,
+      "referral_rate": 0.33233,
+      "air age 62+ vs under 62": 0.7783500371611862,
+      "air Black vs White": 0.7667933950272053,
+      "air Female vs Male": 0.9512116394189736,
+      "auc_drop": 0.002332387758404275
+    },
+    {
+      "dropped": "loan_term",
+      "test_auc": 0.8678138295572202,
+      "referral_rate": 0.33526900000000004,
+      "air age 62+ vs under 62": 0.7780362192879102,
+      "air Black vs White": 0.7670279187039999,
+      "air Female vs Male": 0.9500384674647927,
+      "auc_drop": 0.001897713264489287
+    },
+    {
+      "dropped": "submission_of_application",
+      "test_auc": 0.8680207506363842,
+      "referral_rate": 0.333827,
+      "air age 62+ vs under 62": 0.7721105718829139,
+      "air Black vs White": 0.7635267902126812,
+      "air Female vs Male": 0.9505664078915487,
+      "auc_drop": 0.0016907921853253072
+    },
+    {
+      "dropped": "co_applicant_credit_score_type",
+      "test_auc": 0.8682351042765196,
+      "referral_rate": 0.33216500000000004,
+      "air age 62+ vs under 62": 0.7676035894928533,
+      "air Black vs White": 0.7812980966178872,
+      "air Female vs Male": 0.9434556199724378,
+      "auc_drop": 0.001476438545189862
+    },
+    {
+      "dropped": "applicant_credit_score_type",
+      "test_auc": 0.8688670682863244,
+      "referral_rate": 0.336195,
+      "air age 62+ vs under 62": 0.7738526214031285,
+      "air Black vs White": 0.7681685462605051,
+      "air Female vs Male": 0.9497713267518431,
+      "auc_drop": 0.0008444745353850536
+    },
+    {
+      "dropped": "occupancy_type",
+      "test_auc": 0.8691571281556524,
+      "referral_rate": 0.33133900000000005,
+      "air age 62+ vs under 62": 0.7837369706761692,
+      "air Black vs White": 0.7682803226003254,
+      "air Female vs Male": 0.9516459107559007,
+      "auc_drop": 0.0005544146660571014
+    },
+    {
+      "dropped": "construction_method",
+      "test_auc": 0.869174862289828,
+      "referral_rate": 0.33244700000000005,
+      "air age 62+ vs under 62": 0.7819851749505944,
+      "air Black vs White": 0.7596764093001378,
+      "air Female vs Male": 0.9487008133418847,
+      "auc_drop": 0.0005366805318814949
+    },
+    {
+      "dropped": "total_units",
+      "test_auc": 0.8694325745256073,
+      "referral_rate": 0.33274000000000004,
+      "air age 62+ vs under 62": 0.7783583144835345,
+      "air Black vs White": 0.7700770413550687,
+      "air Female vs Male": 0.9486237983658202,
+      "auc_drop": 0.0002789682961021889
+    },
+    {
+      "dropped": "conforming_loan_limit",
+      "test_auc": 0.8696919092484471,
+      "referral_rate": 0.331176,
+      "air age 62+ vs under 62": 0.7815218759383855,
+      "air Black vs White": 0.7672434920515254,
+      "air Female vs Male": 0.9508549151190437,
+      "auc_drop": 1.9633573262400894e-05
+    }
+  ]
+}

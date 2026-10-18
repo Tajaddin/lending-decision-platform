@@ -9,12 +9,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
-from delta.tables import DeltaTable
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
 from ldp.log import get_logger
 from ldp.schema import normalize_column
+from ldp.spark import lake
 
 log = get_logger(__name__)
 
@@ -51,15 +51,8 @@ def write_bronze(spark: SparkSession, csv_path: str, bronze_path: str, year: int
     if years != [str(year)]:
         raise ValueError(f"{source}: activity_year values {years}, expected only {year}")
 
-    (
-        df.write.format("delta")
-        .mode("overwrite")
-        .option("replaceWhere", f"activity_year = '{year}'")
-        .partitionBy("activity_year")
-        .save(bronze_path)
-    )
-    table = DeltaTable.forPath(spark, bronze_path)
-    last = table.history(1).select("version", "operationMetrics").collect()[0]
-    rows = int(last["operationMetrics"].get("numOutputRows", "0"))
+    lake.write(df, bronze_path, replace_where=f"activity_year = '{year}'", partition_by="activity_year")
+    last = lake.last_operation(spark, bronze_path)
+    rows = int(last["metrics"].get("numOutputRows", "0"))
     log.info("bronze_written", year=year, source=source, rows=rows, version=last["version"])
-    return BronzeResult(year=year, source_file=source, rows=rows, delta_version=int(last["version"]))
+    return BronzeResult(year=year, source_file=source, rows=rows, delta_version=last["version"])
