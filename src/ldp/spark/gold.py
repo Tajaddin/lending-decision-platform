@@ -38,6 +38,7 @@ EXPORT_COLUMNS = (
     LABEL,
     *PROTECTED,
     "tract_minority_population_percent",
+    "denial_reason_1",  # not an input: lets the evaluation compare model reasons with lender-reported ones
     "lei",
     "state_code",
     "activity_year",
