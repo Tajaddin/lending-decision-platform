@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: ldp
+    folder: Lending decisions
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
