@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-10-18T21:04:29+00:00",
+  "host": {
+    "platform": "Linux-6.1.188-233.386.amzn2023.aarch64-aarch64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpus": 4,
+    "mem_total_gb": 15.3,
+    "cpu_model": ""
+  },
+  "stages": [
+    "bronze",
+    "silver"
+  ],
+  "years": [
+    2023,
+    2024,
+    2025
+  ],
+  "bronze": {
+    "2023": 11483889,
+    "2024": 12229298,
+    "2025": 13543606
+  },
+  "silver": {
+    "2023": 11483889,
+    "2024": 12229298,
+    "2025": 13543606
+  },
+  "timings_s": {
+    "bronze_2023": 55.02,
+    "silver_2023": 31.68,
+    "bronze_2024": 58.62,
+    "silver_2024": 32.3,
+    "bronze_2025": 62.39,
+    "silver_2025": 34.4
+  },
+  "spark": {
+    "master": "databricks-serverless",
+    "version": "4.2.0",
+    "default_parallelism": null
+  }
+}

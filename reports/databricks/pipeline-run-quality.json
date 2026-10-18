@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-10-18T21:05:01+00:00",
+  "host": {
+    "platform": "Linux-6.1.188-233.386.amzn2023.aarch64-aarch64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpus": 4,
+    "mem_total_gb": 15.3,
+    "cpu_model": ""
+  },
+  "stages": [
+    "quality"
+  ],
+  "years": [
+    2023,
+    2024,
+    2025
+  ],
+  "bronze": {},
+  "silver": {},
+  "timings_s": {
+    "quality": 7.36
+  },
+  "spark": {
+    "master": "databricks-serverless",
+    "version": "4.2.0",
+    "default_parallelism": null
+  }
+}
