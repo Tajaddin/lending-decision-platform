@@ -1,0 +1,13 @@
+# gitleaks: the default rules. Allowlist only what is provably not a secret.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "local-only placeholders and test fixtures"
+paths = [
+  '''tests/fixtures/lar_\d{4}\.csv''',  # public HMDA rows; LEIs are public identifiers
+  '''uv\.lock''',
+]
+regexes = [
+  '''local-dev-key-[a-z0-9-]+''',  # documented placeholder keys in .env.example and compose
+]
