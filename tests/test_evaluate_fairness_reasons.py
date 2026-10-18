@@ -71,11 +71,16 @@ def test_fairness_audit_compares_model_with_lenders() -> None:
     race = rng.choice(["White", "Black or African American", "Asian"], n, p=[0.7, 0.2, 0.1])
     base = np.where(race == "Black or African American", 0.35, 0.2)
     denied = (rng.random(n) < base).astype(int)
-    df = pd.DataFrame({
-        "derived_race": race, "derived_ethnicity": "Not Hispanic or Latino", "derived_sex": "Male",
-        "applicant_age_above_62": "No", "denied": denied,
-        "probability": np.clip(base + rng.normal(0, 0.05, n), 0, 1),
-    })
+    df = pd.DataFrame(
+        {
+            "derived_race": race,
+            "derived_ethnicity": "Not Hispanic or Latino",
+            "derived_sex": "Male",
+            "applicant_age_above_62": "No",
+            "denied": denied,
+            "probability": np.clip(base + rng.normal(0, 0.05, n), 0, 1),
+        }
+    )
     report = fairness.audit(df, threshold=0.3)
     black = next(g for g in report["dimensions"]["race"]["groups"] if g["group"] == "Black or African American")
     assert black["observed_air"] == pytest.approx(0.65 / 0.8, abs=0.03)
@@ -96,8 +101,10 @@ GROUPS = [
 
 def test_reasons_rank_positive_contributions_and_merge_shared_reasons() -> None:
     reasons = top_reasons([0.4, 0.3, 0.2, 2.0, -0.5], GROUPS)
-    assert [r.reason for r in reasons] == ["Value or type of collateral not sufficient",
-                                          "Excessive obligations in relation to income"]
+    assert [r.reason for r in reasons] == [
+        "Value or type of collateral not sufficient",
+        "Excessive obligations in relation to income",
+    ]
     assert reasons[0].features == ("property_value", "loan_to_value")
     assert reasons[0].contribution == pytest.approx(0.5)
 

@@ -34,12 +34,15 @@ def render(reports: Path, model_dir: Path) -> str:
         "",
         "## Status",
         "",
-        (f"**Not approved for production.** The fair-lending audit flags {len(fair['flags'])} group(s): "
-         + ", ".join(f"`{f}`" for f in fair["flags"])
-         + ". Where the model's adverse impact ratio is below the lenders' own, it would widen an existing gap. "
-         "See the audit table and `reports/fairness-drivers.json`; a less discriminatory alternative has to pass "
-         "the same audit before any use.")
-        if fair["flags"] else "Passes the fair-lending audit at the operating threshold.",
+        (
+            f"**Not approved for production.** The fair-lending audit flags {len(fair['flags'])} group(s): "
+            + ", ".join(f"`{f}`" for f in fair["flags"])
+            + ". Where the model's adverse impact ratio is below the lenders' own, it would widen an existing gap. "
+            "See the audit table and `reports/fairness-drivers.json`; a less discriminatory alternative has to pass "
+            "the same audit before any use."
+        )
+        if fair["flags"]
+        else "Passes the fair-lending audit at the operating threshold.",
         "",
         "## Model details",
         "",
@@ -83,16 +86,21 @@ def render(reports: Path, model_dir: Path) -> str:
         "| Model | AUC (95% CI) | KS | Brier | ECE | Referral rate | Denials caught | Precision |",
         "|---|---|---|---|---|---|---|---|",
     ]
-    for name, label in (("tensorflow", "TensorFlow MLP (this model)"), ("xgboost", "XGBoost baseline"),
-                        ("logistic_regression", "Logistic regression baseline")):
+    for name, label in (
+        ("tensorflow", "TensorFlow MLP (this model)"),
+        ("xgboost", "XGBoost baseline"),
+        ("logistic_regression", "Logistic regression baseline"),
+    ):
         if name not in m["models"]:
             continue
         t = m["models"][name]["test"]
         ci = t.get("auc_ci95", [float("nan"), float("nan")])
         op = t["operating_point"]
-        lines.append(f"| {label} | {t['auc']:.4f} ({ci[0]:.4f}-{ci[1]:.4f}) | {t['ks']:.3f} | {t['brier']:.4f} | "
-                     f"{t['ece']:.4f} | {_pct(op['referral_rate'])} | {_pct(op['recall_of_denials'])} | "
-                     f"{_pct(op['precision'])} |")
+        lines.append(
+            f"| {label} | {t['auc']:.4f} ({ci[0]:.4f}-{ci[1]:.4f}) | {t['ks']:.3f} | {t['brier']:.4f} | "
+            f"{t['ece']:.4f} | {_pct(op['referral_rate'])} | {_pct(op['recall_of_denials'])} | "
+            f"{_pct(op['precision'])} |"
+        )
     lines += [
         "",
         f"Calibration: ECE {m['models']['tensorflow']['test_uncalibrated_ece']:.4f} before Platt scaling, "
@@ -112,8 +120,10 @@ def render(reports: Path, model_dir: Path) -> str:
         for g in block["groups"]:
             if "model_air" not in g:
                 continue
-            lines.append(f"| {dim} | {g['group']} ({ref}) | {g['n']:,} | {g['observed_air']:.3f} | "
-                         f"{g['model_air']:.3f} | {g.get('auc', float('nan')):.3f} |")
+            lines.append(
+                f"| {dim} | {g['group']} ({ref}) | {g['n']:,} | {g['observed_air']:.3f} | "
+                f"{g['model_air']:.3f} | {g.get('auc', float('nan')):.3f} |"
+            )
     lines += ["", f"Flags: {', '.join(fair['flags']) if fair['flags'] else 'none'}.", ""]
     agree = m["reason_agreement"]
     lines += [
@@ -128,8 +138,10 @@ def render(reports: Path, model_dir: Path) -> str:
         "",
         f"Score PSI against the 2023 training population: {psi['score']['valid_2024']:.3f} on 2024, "
         f"{psi['score']['test_2025']:.3f} on 2025. Largest input shifts on 2025: "
-        + ", ".join(f"`{k}` {v['test_2025']:.3f}" for k, v in sorted(psi["features"].items(),
-                                                                      key=lambda kv: -kv[1]["test_2025"])[:3])
+        + ", ".join(
+            f"`{k}` {v['test_2025']:.3f}"
+            for k, v in sorted(psi["features"].items(), key=lambda kv: -kv[1]["test_2025"])[:3]
+        )
         + ".",
         "",
         "## Limitations",

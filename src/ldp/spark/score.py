@@ -45,18 +45,28 @@ def score_partitions(model_dir: str, threshold: float, batch: int = 8192):
             for start in range(0, len(frame), batch):
                 part = frame.iloc[start : start + batch]
                 inputs = {n: tf.constant(part[n].to_numpy(dtype=np.float32, na_value=np.nan)) for n in NUMERIC}
-                inputs.update({n: tf.constant(part[n].fillna("missing").astype(str).to_numpy().astype(bytes))
-                               for n in CATEGORICAL})
+                inputs.update(
+                    {
+                        n: tf.constant(part[n].fillna("missing").astype(str).to_numpy().astype(bytes))
+                        for n in CATEGORICAL
+                    }
+                )
                 p = fn(**inputs)["probability"].numpy().astype(np.float64)
-                yield pd.DataFrame({"record_hash": part["record_hash"].to_numpy(),
-                                    "activity_year": part["activity_year"].to_numpy(),
-                                    "probability": p, "refer": p >= threshold})
+                yield pd.DataFrame(
+                    {
+                        "record_hash": part["record_hash"].to_numpy(),
+                        "activity_year": part["activity_year"].to_numpy(),
+                        "probability": p,
+                        "refer": p >= threshold,
+                    }
+                )
 
     return score
 
 
-def score_year(spark: SparkSession, gold_path: str, model_dir: str, out_path: str, year: int,
-               partitions: int = 8) -> DataFrame:
+def score_year(
+    spark: SparkSession, gold_path: str, model_dir: str, out_path: str, year: int, partitions: int = 8
+) -> DataFrame:
     meta = json.loads((Path(model_dir) / "metadata.json").read_text(encoding="utf-8"))
     src = (
         lake.read(spark, gold_path)

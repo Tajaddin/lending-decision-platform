@@ -27,8 +27,12 @@ class Reason:
     contribution: float  # logit units
 
 
-def top_reasons(attributions: list[float], groups: list[dict[str, str]], max_reasons: int = MAX_REASONS,
-                min_contribution: float = 0.0) -> list[Reason]:
+def top_reasons(
+    attributions: list[float],
+    groups: list[dict[str, str]],
+    max_reasons: int = MAX_REASONS,
+    min_contribution: float = 0.0,
+) -> list[Reason]:
     if len(attributions) != len(groups):
         raise ValueError(f"{len(attributions)} attributions for {len(groups)} groups")
     by_reason: dict[str, list[tuple[str, float]]] = {}
@@ -37,7 +41,10 @@ def top_reasons(attributions: list[float], groups: list[dict[str, str]], max_rea
             by_reason.setdefault(group["reason"], []).append((group["name"], float(value)))
     ranked = sorted(by_reason.items(), key=lambda kv: -sum(v for _, v in kv[1]))
     return [
-        Reason(reason=text, features=tuple(n for n, _ in sorted(items, key=lambda x: -x[1])),
-               contribution=round(sum(v for _, v in items), 4))
+        Reason(
+            reason=text,
+            features=tuple(n for n, _ in sorted(items, key=lambda x: -x[1])),
+            contribution=round(sum(v for _, v in items), 4),
+        )
         for text, items in ranked[:max_reasons]
     ]

@@ -70,14 +70,25 @@ def fit_logistic(x_train: np.ndarray, y_train: np.ndarray) -> FittedBaseline:
     return FittedBaseline("logistic_regression", model, params)
 
 
-def fit_xgboost(x_train: pd.DataFrame, y_train: np.ndarray, x_valid: pd.DataFrame, y_valid: np.ndarray,
-                n_jobs: int = -1) -> FittedBaseline:
+def fit_xgboost(
+    x_train: pd.DataFrame, y_train: np.ndarray, x_valid: pd.DataFrame, y_valid: np.ndarray, n_jobs: int = -1
+) -> FittedBaseline:
     import xgboost as xgb
 
     params = {
-        "n_estimators": 2000, "learning_rate": 0.08, "max_depth": 8, "min_child_weight": 50, "subsample": 0.8,
-        "colsample_bytree": 0.8, "tree_method": "hist", "enable_categorical": True, "max_cat_to_onehot": 1,
-        "eval_metric": "auc", "early_stopping_rounds": 50, "n_jobs": n_jobs, "random_state": 7,
+        "n_estimators": 2000,
+        "learning_rate": 0.08,
+        "max_depth": 8,
+        "min_child_weight": 50,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "enable_categorical": True,
+        "max_cat_to_onehot": 1,
+        "eval_metric": "auc",
+        "early_stopping_rounds": 50,
+        "n_jobs": n_jobs,
+        "random_state": 7,
     }
     model = xgb.XGBClassifier(**params).fit(x_train, y_train, eval_set=[(x_valid, y_valid)], verbose=False)
     params["best_iteration"] = int(model.best_iteration)

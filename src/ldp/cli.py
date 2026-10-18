@@ -78,8 +78,12 @@ def model_card(version: int = 1, out: Path = Path("docs/MODEL-CARD.md")) -> None
 
 
 @app.command()
-def score_batch(year: int = 2025, version: int = 1, partitions: int = 8,
-                master: Annotated[str | None, typer.Option(help="Spark master")] = None) -> None:
+def score_batch(
+    year: int = 2025,
+    version: int = 1,
+    partitions: int = 8,
+    master: Annotated[str | None, typer.Option(help="Spark master")] = None,
+) -> None:
     """Score one year of the gold table in Spark with the SavedModel; writes the scores Delta table."""
     import time
 
@@ -95,10 +99,20 @@ def score_batch(year: int = 2025, version: int = 1, partitions: int = 8,
     rows = scored.count()
     seconds = time.perf_counter() - start
     referred = scored.where("refer").count()
-    write_json({"benchmark": "Spark batch scoring with the SavedModel (mapInPandas)", "year": year, "rows": rows,
-                "referred": referred, "seconds": round(seconds, 1), "rows_per_s": round(rows / seconds),
-                "partitions": partitions, "master": spark.sparkContext.master, "host": host_info()},
-               Path(settings.reports_dir) / "batch-scoring.json")
+    write_json(
+        {
+            "benchmark": "Spark batch scoring with the SavedModel (mapInPandas)",
+            "year": year,
+            "rows": rows,
+            "referred": referred,
+            "seconds": round(seconds, 1),
+            "rows_per_s": round(rows / seconds),
+            "partitions": partitions,
+            "master": spark.sparkContext.master,
+            "host": host_info(),
+        },
+        Path(settings.reports_dir) / "batch-scoring.json",
+    )
     typer.echo(f"scored {rows:,} rows in {seconds:.1f}s ({rows / seconds:,.0f}/s), referred {referred:,}")
 
 

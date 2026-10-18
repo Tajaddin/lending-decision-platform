@@ -55,8 +55,9 @@ def sample_table(table: pa.Table, n: int, seed: int) -> pa.Table:
     return table.take(pa.array(idx))
 
 
-def reason_agreement(explain_fn: Any, groups: list[dict[str, str]], table: pa.Table, n: int = 20_000,
-                     seed: int = 5) -> dict[str, Any]:
+def reason_agreement(
+    explain_fn: Any, groups: list[dict[str, str]], table: pa.Table, n: int = 20_000, seed: int = 5
+) -> dict[str, Any]:
     """On denied 2025 applications whose lender-reported first reason is debt-to-income (1) or collateral (4),
     how often is that reason among the model's top reasons, and how often is it the top one?"""
     import tensorflow as tf
@@ -91,8 +92,9 @@ def reason_agreement(explain_fn: Any, groups: list[dict[str, str]], table: pa.Ta
     }
 
 
-def train_and_evaluate(settings: Settings, epochs: int = 12, batch_size: int = 4096, version: int = 1,
-                       skip_baselines: bool = False) -> dict[str, Any]:
+def train_and_evaluate(
+    settings: Settings, epochs: int = 12, batch_size: int = 4096, version: int = 1, skip_baselines: bool = False
+) -> dict[str, Any]:
     import keras
     import tensorflow as tf
 
@@ -115,8 +117,7 @@ def train_and_evaluate(settings: Settings, epochs: int = 12, batch_size: int = 4
         as_dataset(BatchStream(train, batch_size=batch_size)),
         validation_data=as_dataset(BatchStream(valid_es, batch_size=16384, shuffle=False)),
         epochs=epochs,
-        callbacks=[keras.callbacks.EarlyStopping(monitor="val_auc", mode="max", patience=2,
-                                                 restore_best_weights=True)],
+        callbacks=[keras.callbacks.EarlyStopping(monitor="val_auc", mode="max", patience=2, restore_best_weights=True)],
         verbose=2,
     )
     train_seconds = time.perf_counter() - t0
@@ -142,18 +143,27 @@ def train_and_evaluate(settings: Settings, epochs: int = 12, batch_size: int = 4
         x_lin = linear_design(train, stats)
         lr = fit_logistic(x_lin, y_train)
         del x_lin
-        lr_valid, lr_test = predict_logit(lr, linear_design(valid, stats)), predict_logit(lr, linear_design(test, stats))
+        lr_valid, lr_test = (
+            predict_logit(lr, linear_design(valid, stats)),
+            predict_logit(lr, linear_design(test, stats)),
+        )
         x_tree_train, x_tree_valid = tree_design(train, stats), tree_design(valid, stats)
         t1 = time.perf_counter()
         xgb = fit_xgboost(x_tree_train, y_train, x_tree_valid, y_valid)
         xgb_seconds = time.perf_counter() - t1
         xgb_valid, xgb_test = predict_logit(xgb, x_tree_valid), predict_logit(xgb, tree_design(test, stats))
-        for name, lv, lt, fitted in (("logistic_regression", lr_valid, lr_test, lr), ("xgboost", xgb_valid, xgb_test, xgb)):
+        for name, lv, lt, fitted in (
+            ("logistic_regression", lr_valid, lr_test, lr),
+            ("xgboost", xgb_valid, xgb_test, xgb),
+        ):
             cal = fit_platt(lv, y_valid)
             pv, pt = sigmoid(cal.a * lv + cal.b), sigmoid(cal.a * lt + cal.b)
             thr = evaluate.threshold_for_recall(y_valid, pv, TARGET_RECALL)
-            metrics[name] = {"valid": evaluate.summary(y_valid, pv, thr), "test": evaluate.summary(y_test, pt, thr),
-                             "params": fitted.params}
+            metrics[name] = {
+                "valid": evaluate.summary(y_valid, pv, thr),
+                "test": evaluate.summary(y_test, pt, thr),
+                "params": fitted.params,
+            }
         metrics["xgboost"]["train_seconds"] = round(xgb_seconds, 1)
 
     # Fair-lending audit on the 2025 hold-out at the operating threshold.
@@ -172,23 +182,36 @@ def train_and_evaluate(settings: Settings, epochs: int = 12, batch_size: int = 4
         ref = evaluate.reference_bins(tr, kind)
         reference[name] = ref
         psi_report["features"][name] = {
-            split: evaluate.psi(np.asarray(ref["expected"]), evaluate.histogram(
-                (tbl[name].to_numpy(zero_copy_only=False).astype(str) if kind == "categorical"
-                 else tbl[name].to_numpy(zero_copy_only=False)), ref))
+            split: evaluate.psi(
+                np.asarray(ref["expected"]),
+                evaluate.histogram(
+                    (
+                        tbl[name].to_numpy(zero_copy_only=False).astype(str)
+                        if kind == "categorical"
+                        else tbl[name].to_numpy(zero_copy_only=False)
+                    ),
+                    ref,
+                ),
+            )
             for split, tbl in (("valid_2024", valid), ("test_2025", test))
         }
     train_sample = sample_table(train, 1_000_000, seed=9)
     p_train_sample = sigmoid(calibration.a * predict_logits(full, train_sample) + calibration.b)
     reference["score"] = evaluate.reference_bins(p_train_sample, "numeric")
     psi_report["score"] = {
-        "valid_2024": evaluate.psi(np.asarray(reference["score"]["expected"]), evaluate.histogram(p_valid, reference["score"])),
-        "test_2025": evaluate.psi(np.asarray(reference["score"]["expected"]), evaluate.histogram(p_test, reference["score"])),
+        "valid_2024": evaluate.psi(
+            np.asarray(reference["score"]["expected"]), evaluate.histogram(p_valid, reference["score"])
+        ),
+        "test_2025": evaluate.psi(
+            np.asarray(reference["score"]["expected"]), evaluate.histogram(p_test, reference["score"])
+        ),
     }
 
     # Integrated-gradient reference: the average encoded approved applicant in 2023.
     approved = train_sample.filter(pc.equal(train_sample[LABEL], 0))
-    baseline = encoder.predict(as_dataset(BatchStream(approved, batch_size=16384, shuffle=False)).map(lambda x, y: x),
-                               verbose=0).mean(axis=0)
+    baseline = encoder.predict(
+        as_dataset(BatchStream(approved, batch_size=16384, shuffle=False)).map(lambda x, y: x), verbose=0
+    ).mean(axis=0)
 
     out_dir = Path(settings.models_dir) / settings.model_name / str(version)
     out_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -200,13 +223,18 @@ def train_and_evaluate(settings: Settings, epochs: int = 12, batch_size: int = 4
 
     dataset = json.loads((Path(settings.reports_dir) / "dataset.json").read_text(encoding="utf-8"))
     meta = ModelMetadata(
-        model_name=settings.model_name, version=version, trained_at=datetime.now(UTC).isoformat(timespec="seconds"),
+        model_name=settings.model_name,
+        version=version,
+        trained_at=datetime.now(UTC).isoformat(timespec="seconds"),
         threshold=threshold,
         threshold_rule=f"refer when p(denial) >= threshold; threshold set on {settings.valid_year} to catch "
-                       f"{TARGET_RECALL:.0%} of denials",
-        calibration=calibration, attribution_groups=groups,
+        f"{TARGET_RECALL:.0%} of denials",
+        calibration=calibration,
+        attribution_groups=groups,
         baseline_logit=float(head(baseline[None, :]).numpy()[0, 0]),
-        train_rows=train.num_rows, train_year=settings.train_year, valid_year=settings.valid_year,
+        train_rows=train.num_rows,
+        train_year=settings.train_year,
+        valid_year=settings.valid_year,
         gold_delta_version=dataset["splits"][0]["gold_delta_version"],
         reference_bins=reference,
         metrics={"test_auc": metrics["tensorflow"]["test"]["auc"], "test_ece": metrics["tensorflow"]["test"]["ece"]},
@@ -214,11 +242,18 @@ def train_and_evaluate(settings: Settings, epochs: int = 12, batch_size: int = 4
     write_metadata(meta, out_dir)
 
     reports = Path(settings.reports_dir)
-    payload = {"generated_at": meta.trained_at, "splits": {"train": settings.train_year, "valid": settings.valid_year,
-               "test": settings.test_year}, "features": list(FEATURE_NAMES), "categorical": list(CATEGORICAL),
-               "calibration": asdict(calibration), "threshold": threshold, "target_recall": TARGET_RECALL,
-               "models": metrics, "reason_agreement": agreement,
-               "training_history": {k: [float(v) for v in vs] for k, vs in history.history.items()}}
+    payload = {
+        "generated_at": meta.trained_at,
+        "splits": {"train": settings.train_year, "valid": settings.valid_year, "test": settings.test_year},
+        "features": list(FEATURE_NAMES),
+        "categorical": list(CATEGORICAL),
+        "calibration": asdict(calibration),
+        "threshold": threshold,
+        "target_recall": TARGET_RECALL,
+        "models": metrics,
+        "reason_agreement": agreement,
+        "training_history": {k: [float(v) for v in vs] for k, vs in history.history.items()},
+    }
     (reports / "model-metrics.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     (reports / "fairness.json").write_text(json.dumps(fairness_report, indent=2) + "\n", encoding="utf-8")
     (reports / "psi.json").write_text(json.dumps(psi_report, indent=2) + "\n", encoding="utf-8")
