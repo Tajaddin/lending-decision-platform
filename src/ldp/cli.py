@@ -105,7 +105,7 @@ def score_batch(
 
     from ldp.pipeline import host_info, write_json
     from ldp.spark.score import score_year
-    from ldp.spark.session import get_spark
+    from ldp.spark.session import get_spark, spark_info
 
     settings = get_settings()
     spark = get_spark("ldp-score", master=master)
@@ -124,7 +124,7 @@ def score_batch(
             "seconds": round(seconds, 1),
             "rows_per_s": round(rows / seconds),
             "partitions": partitions,
-            "master": spark.sparkContext.master,
+            "master": spark_info(spark)["master"],
             "host": host_info(),
         },
         Path(settings.reports_dir) / "batch-scoring.json",

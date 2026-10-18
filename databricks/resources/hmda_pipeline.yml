@@ -12,7 +12,8 @@ resources:
           spec:
             client: "3"
             dependencies:
-              - ../dist/*.whl
+              # Relative to this file: the wheel that `uv build` writes to the repository's dist/.
+              - ../../dist/*.whl
       tasks:
         - task_key: bronze_silver
           environment_key: ldp
