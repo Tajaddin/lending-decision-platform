@@ -1,0 +1,41 @@
+# Databricks Asset Bundle: the same Spark jobs as `ldp pipeline`, on serverless compute, writing Unity Catalog
+# tables instead of Delta paths.
+#
+#   databricks bundle validate -t free
+#   databricks bundle deploy   -t free
+#   databricks bundle run      -t free hmda_pipeline
+#
+# Prerequisite (once, in the workspace): a catalog/schema `workspace.lending` and a volume `workspace.lending.raw`
+# holding the three <year>_public_lar_csv.csv files. See docs/DEPLOY.md.
+bundle:
+  name: lending-decision-platform
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog
+    default: workspace
+  schema:
+    description: Schema that holds bronze, silver and gold
+    default: lending
+  years:
+    description: Activity years to process
+    default: "2023,2024,2025"
+
+artifacts:
+  ldp_wheel:
+    type: whl
+    path: ..
+    build: uv build --wheel --out-dir dist
+
+targets:
+  dev:
+    mode: development
+    default: true
+  free:
+    # Databricks Free Edition: serverless only, one workspace, fair-use quota.
+    mode: production
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}

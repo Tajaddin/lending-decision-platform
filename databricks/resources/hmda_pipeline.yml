@@ -1,0 +1,57 @@
+resources:
+  jobs:
+    hmda_pipeline:
+      name: hmda-pipeline-${bundle.target}
+      description: Bronze, silver, quality checks, gold, leakage audit and training export for the HMDA register.
+      max_concurrent_runs: 1
+      timeout_seconds: 7200
+      tags:
+        project: lending-decision-platform
+      environments:
+        - environment_key: ldp
+          spec:
+            client: "3"
+            dependencies:
+              - ../dist/*.whl
+      tasks:
+        - task_key: bronze_silver
+          environment_key: ldp
+          python_wheel_task:
+            package_name: lending_decision_platform
+            entry_point: ldp
+            parameters:
+              - --lake-root=uc:${var.catalog}.${var.schema}
+              - --reports-dir=/Volumes/${var.catalog}/${var.schema}/raw/reports
+              - pipeline
+              - --years=${var.years}
+              - --raw-dir=/Volumes/${var.catalog}/${var.schema}/raw
+              - --stages=bronze,silver
+
+        - task_key: quality
+          depends_on:
+            - task_key: bronze_silver
+          environment_key: ldp
+          python_wheel_task:
+            package_name: lending_decision_platform
+            entry_point: ldp
+            parameters:
+              - --lake-root=uc:${var.catalog}.${var.schema}
+              - --reports-dir=/Volumes/${var.catalog}/${var.schema}/raw/reports
+              - pipeline
+              - --years=${var.years}
+              - --stages=quality
+
+        - task_key: gold_audit_export
+          depends_on:
+            - task_key: quality
+          environment_key: ldp
+          python_wheel_task:
+            package_name: lending_decision_platform
+            entry_point: ldp
+            parameters:
+              - --lake-root=uc:${var.catalog}.${var.schema}
+              - --reports-dir=/Volumes/${var.catalog}/${var.schema}/raw/reports
+              - --training-dir=/Volumes/${var.catalog}/${var.schema}/raw/training
+              - pipeline
+              - --years=${var.years}
+              - --stages=gold,audit,export
