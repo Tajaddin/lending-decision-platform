@@ -18,7 +18,23 @@ def _years(value: str) -> list[int]:
 
 
 @app.callback()
-def main(log_level: str = "INFO") -> None:
+def main(
+    log_level: str = "INFO",
+    lake_root: Annotated[str | None, typer.Option(help="overrides LDP_LAKE_ROOT, e.g. uc:workspace.lending")] = None,
+    training_dir: Annotated[str | None, typer.Option(help="overrides LDP_TRAINING_DIR")] = None,
+    reports_dir: Annotated[str | None, typer.Option(help="overrides LDP_REPORTS_DIR")] = None,
+) -> None:
+    """Options before the command override the environment: a Databricks wheel task has parameters, not env."""
+    import os
+
+    for name, value in (
+        ("LDP_LAKE_ROOT", lake_root),
+        ("LDP_TRAINING_DIR", training_dir),
+        ("LDP_REPORTS_DIR", reports_dir),
+    ):
+        if value:
+            os.environ[name] = value
+    get_settings.cache_clear()
     configure(log_level)
 
 
