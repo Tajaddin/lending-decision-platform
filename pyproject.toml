@@ -18,6 +18,8 @@ dependencies = [
   "prometheus-client>=0.23",
   "typer>=0.20",
   "numpy>=2.2,<3",
+  "pandas>=2.3,<3",
+  "pyarrow>=21",
   "google-cloud-pubsub>=2.43",
   "google-cloud-bigquery>=3.46",
 ]
@@ -47,6 +49,8 @@ dev = [
   "testcontainers>=4.13",
   "pip-audit>=2.9",
   "check-jsonschema>=0.34",
+  "pyyaml>=6",
+  "types-pyyaml>=6",
 ]
 
 [project.scripts]
