@@ -36,10 +36,9 @@ population exists with an out-of-time split. **Met.**
 - A gitleaks false positive (a CI cache key) blocked the first push until allowlisted precisely.
 - The development machine's Docker engine crashed twice: Windows had run out of commit memory because a
   screen-capture service had leaked 86 GB. Action: check commit before heavy runs.
-
-- Scaling flattens: 2 cores 1.93x, 4 cores 2.70x, 8 cores 4.97x, 16 cores 5.95x. The 2025 bronze partition is
-  about 20 Parquet files of ~30 MB, so reads cannot fan out much further, and the write ends in one partition.
-  Not worth fixing at this size (the whole pipeline is 6.4 minutes); noted for a cluster run.
+- Scaling flattens: 2 cores 1.93x, 4 cores 2.70x, 8 cores 4.97x, 16 cores 5.95x. The input is not the limit
+  (the 2025 bronze partition has 39 Parquet files); the cause was not investigated because the whole pipeline
+  takes 6.4 minutes. A Spark UI profile is the first step on a cluster run.
 
 ## Carried into Sprint 2
 
