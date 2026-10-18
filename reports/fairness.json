@@ -1,0 +1,185 @@
+{
+  "air_limit": 0.8,
+  "threshold": 0.13817642455716747,
+  "dimensions": {
+    "race": {
+      "reference": {
+        "group": "White",
+        "n": 3538810,
+        "observed_approval_rate": 0.8471822448789282,
+        "model_pass_rate": 0.6917678541656659,
+        "mean_predicted": 0.17009190436741634,
+        "observed_denial_rate": 0.15281775512107176,
+        "auc": 0.8689199914837882
+      },
+      "groups": [
+        {
+          "n": 485557,
+          "observed_approval_rate": 0.7007848718070175,
+          "model_pass_rate": 0.5250629689202297,
+          "mean_predicted": 0.26640949296332345,
+          "observed_denial_rate": 0.2992151281929825,
+          "auc": 0.8445216427790814,
+          "group": "Black or African American",
+          "model_air": 0.7590161435782569,
+          "observed_air": 0.8271949465928284,
+          "model_minus_observed_air": -0.06817880301457158,
+          "calibration_gap": -0.03280563522965907,
+          "flag_model_air_below_limit": true,
+          "flag_model_widens_gap": true
+        },
+        {
+          "n": 347400,
+          "observed_approval_rate": 0.8776309729418538,
+          "model_pass_rate": 0.8250949913644214,
+          "mean_predicted": 0.12332658253669766,
+          "observed_denial_rate": 0.12236902705814623,
+          "auc": 0.8413790936809268,
+          "group": "Asian",
+          "model_air": 1.1927339300256443,
+          "observed_air": 1.0359411782376022,
+          "model_minus_observed_air": 0.15679275178804208,
+          "calibration_gap": 0.0009575554785514334,
+          "flag_model_air_below_limit": false,
+          "flag_model_widens_gap": false
+        },
+        {
+          "n": 41996,
+          "observed_approval_rate": 0.7088294123249833,
+          "model_pass_rate": 0.5435041432517382,
+          "mean_predicted": 0.276481330675395,
+          "observed_denial_rate": 0.2911705876750167,
+          "auc": 0.8861127445220907,
+          "group": "American Indian or Alaska Native",
+          "model_air": 0.7856741824282266,
+          "observed_air": 0.8366905900232634,
+          "model_minus_observed_air": -0.05101640759503678,
+          "calibration_gap": -0.014689256999621703,
+          "flag_model_air_below_limit": true,
+          "flag_model_widens_gap": true
+        },
+        {
+          "n": 11057,
+          "observed_approval_rate": 0.7523740616803835,
+          "model_pass_rate": 0.5842452744867505,
+          "mean_predicted": 0.23602002827679627,
+          "observed_denial_rate": 0.24762593831961655,
+          "auc": 0.8615421666244758,
+          "group": "Native Hawaiian or Other Pacific Islander",
+          "model_air": 0.8445684068268866,
+          "observed_air": 0.8880899785475391,
+          "model_minus_observed_air": -0.04352157172065252,
+          "calibration_gap": -0.011605910042820272,
+          "flag_model_air_below_limit": false,
+          "flag_model_widens_gap": true
+        },
+        {
+          "n": 14268,
+          "observed_approval_rate": 0.7369638351555929,
+          "model_pass_rate": 0.6271376506868517,
+          "mean_predicted": 0.2339893196973394,
+          "observed_denial_rate": 0.26303616484440706,
+          "auc": 0.8734681615937239,
+          "group": "2 or more minority races",
+          "model_air": 0.9065724099643745,
+          "observed_air": 0.8699000003959163,
+          "model_minus_observed_air": 0.036672409568458186,
+          "calibration_gap": -0.02904684514706765,
+          "flag_model_air_below_limit": false,
+          "flag_model_widens_gap": false
+        }
+      ]
+    },
+    "ethnicity": {
+      "reference": {
+        "group": "Not Hispanic or Latino",
+        "n": 3805100,
+        "observed_approval_rate": 0.840455441381304,
+        "model_pass_rate": 0.6865157288901738,
+        "mean_predicted": 0.17231850813807262,
+        "observed_denial_rate": 0.15954455861869596,
+        "auc": 0.8688735649316288
+      },
+      "groups": [
+        {
+          "n": 703083,
+          "observed_approval_rate": 0.7742201134147746,
+          "model_pass_rate": 0.6430421443840912,
+          "mean_predicted": 0.21778724301249872,
+          "observed_denial_rate": 0.22577988658522535,
+          "auc": 0.8575455921387555,
+          "group": "Hispanic or Latino",
+          "model_air": 0.9366750349968497,
+          "observed_air": 0.9211911486257136,
+          "model_minus_observed_air": 0.015483886371136069,
+          "calibration_gap": -0.007992643572726638,
+          "flag_model_air_below_limit": false,
+          "flag_model_widens_gap": false
+        }
+      ]
+    },
+    "sex": {
+      "reference": {
+        "group": "Male",
+        "n": 1871970,
+        "observed_approval_rate": 0.8150061165510131,
+        "model_pass_rate": 0.6446940923198555,
+        "mean_predicted": 0.19411118360549443,
+        "observed_denial_rate": 0.1849938834489869,
+        "auc": 0.8556931265327269
+      },
+      "groups": [
+        {
+          "n": 1214543,
+          "observed_approval_rate": 0.7813819683617624,
+          "model_pass_rate": 0.6036097528041412,
+          "mean_predicted": 0.2224965004670427,
+          "observed_denial_rate": 0.2186180316382376,
+          "auc": 0.8769262137598761,
+          "group": "Female",
+          "model_air": 0.936273125494485,
+          "observed_air": 0.9587436860823288,
+          "model_minus_observed_air": -0.022470560587843802,
+          "calibration_gap": 0.003878468828805104,
+          "flag_model_air_below_limit": false,
+          "flag_model_widens_gap": true
+        }
+      ]
+    },
+    "age": {
+      "reference": {
+        "group": "No",
+        "n": 4617609,
+        "observed_approval_rate": 0.8311732327271538,
+        "model_pass_rate": 0.6987501540299319,
+        "mean_predicted": 0.17571929602631073,
+        "observed_denial_rate": 0.16882676727284618,
+        "auc": 0.869113602649771
+      },
+      "groups": [
+        {
+          "n": 823774,
+          "observed_approval_rate": 0.7726366697662223,
+          "model_pass_rate": 0.5315741938929852,
+          "mean_predicted": 0.22874498340931546,
+          "observed_denial_rate": 0.22736333023377772,
+          "auc": 0.8631227536149118,
+          "group": "Yes",
+          "model_air": 0.7607500203430574,
+          "observed_air": 0.9295735706395791,
+          "model_minus_observed_air": -0.16882355029652174,
+          "calibration_gap": 0.0013816531755377337,
+          "flag_model_air_below_limit": true,
+          "flag_model_widens_gap": true
+        }
+      ]
+    }
+  },
+  "flags": [
+    "race:Black or African American",
+    "race:American Indian or Alaska Native",
+    "race:Native Hawaiian or Other Pacific Islander",
+    "sex:Female",
+    "age:Yes"
+  ]
+}

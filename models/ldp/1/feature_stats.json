@@ -1,0 +1,96 @@
+{
+  "medians": {
+    "loan_amount": 275000.0,
+    "income": 98.0,
+    "property_value": 345000.0,
+    "debt_to_income_ratio": 41.0,
+    "loan_term": 360.0
+  },
+  "means": {
+    "loan_amount": 12.47225106539435,
+    "income": 4.614226935534383,
+    "property_value": 12.735119886045503,
+    "debt_to_income_ratio": 0.4020789158201012,
+    "loan_term": 0.9565880588958562,
+    "loan_to_value": 0.8127646170260505,
+    "loan_to_income": 1.2979288197707397
+  },
+  "stds": {
+    "loan_amount": 0.7120400314072983,
+    "income": 0.7826370083082079,
+    "property_value": 0.7005316903914451,
+    "debt_to_income_ratio": 0.12009190784096006,
+    "loan_term": 0.13207559454312132,
+    "loan_to_value": 0.20398223087957265,
+    "loan_to_income": 0.36697020148265547
+  },
+  "vocab": {
+    "loan_type": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "loan_purpose": [
+      "1",
+      "31",
+      "32"
+    ],
+    "occupancy_type": [
+      "1",
+      "2",
+      "3"
+    ],
+    "construction_method": [
+      "1",
+      "2"
+    ],
+    "total_units": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "applicant_credit_score_type": [
+      "1",
+      "11",
+      "1111",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "co_applicant_credit_score_type": [
+      "1",
+      "10",
+      "11",
+      "1111",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "submission_of_application": [
+      "1",
+      "1111",
+      "2"
+    ],
+    "preapproval": [
+      "1",
+      "2"
+    ],
+    "conforming_loan_limit": [
+      "C",
+      "NC",
+      "U"
+    ]
+  }
+}
