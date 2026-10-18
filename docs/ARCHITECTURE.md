@@ -50,6 +50,7 @@ flowchart LR
 | [0007](adr/0007-tf-serving-behind-a-thin-gateway.md) | TF Serving behind a thin gateway without TensorFlow |
 | [0008](adr/0008-decision-events-through-pubsub-into-bigquery.md) | Decision events through Pub/Sub into BigQuery |
 | [0009](adr/0009-gcp-cloud-run-with-a-sidecar-and-databricks-for-batch.md) | Cloud Run with a TF Serving sidecar on GCP; Databricks for the batch jobs |
+| [0010](adr/0010-protected-attributes-may-shape-the-training-loss.md) | Protected attributes may shape the training loss of an alternative model, never its inputs |
 
 ## Where the code is
 
