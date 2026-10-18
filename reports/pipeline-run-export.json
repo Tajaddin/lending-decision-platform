@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-10-18T07:05:08+00:00",
+  "host": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpus": 20,
+    "mem_total_gb": 15.5,
+    "cpu_model": "13th Gen Intel(R) Core(TM) i5-13600KF"
+  },
+  "stages": [
+    "export"
+  ],
+  "years": [
+    2023,
+    2024,
+    2025
+  ],
+  "bronze": {},
+  "silver": {},
+  "timings_s": {
+    "export": 18.94
+  },
+  "spark": {
+    "master": "local[*]",
+    "version": "4.2.0",
+    "default_parallelism": 20
+  }
+}

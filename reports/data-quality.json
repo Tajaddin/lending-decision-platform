@@ -1,0 +1,345 @@
+{
+  "years": [
+    {
+      "year": 2023,
+      "rows": 11483889,
+      "generated_at": "2026-10-18T07:02:46+00:00",
+      "critical_failures": 0,
+      "warnings": 1,
+      "results": [
+        {
+          "name": "action_taken_valid",
+          "severity": "critical",
+          "description": "action_taken is one of the 8 HMDA codes",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "loan_amount_present",
+          "severity": "critical",
+          "description": "loan_amount is reported",
+          "threshold": ">= 0.999",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "loan_amount_positive",
+          "severity": "critical",
+          "description": "reported loan_amount is above zero",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "lei_format",
+          "severity": "critical",
+          "description": "lei is a 20-character Legal Entity Identifier",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "dti_parser_coverage",
+          "severity": "critical",
+          "description": "every non-sentinel debt_to_income_ratio string parses",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "income_present_in_decisions",
+          "severity": "warning",
+          "description": "income reported on decided applications",
+          "threshold": ">= 0.85",
+          "value": 0.9550060591688564,
+          "passed": true
+        },
+        {
+          "name": "property_value_present_in_decisions",
+          "severity": "warning",
+          "description": "property_value reported on decided applications",
+          "threshold": ">= 0.85",
+          "value": 0.9423101336394124,
+          "passed": true
+        },
+        {
+          "name": "income_plausible",
+          "severity": "warning",
+          "description": "reported income between -$1M and $100M (thousands)",
+          "threshold": ">= 0.999",
+          "value": 0.9999499269233519,
+          "passed": true
+        },
+        {
+          "name": "cltv_plausible",
+          "severity": "warning",
+          "description": "reported CLTV in (0, 300] percent",
+          "threshold": ">= 0.99",
+          "value": 0.9995833879169814,
+          "passed": true
+        },
+        {
+          "name": "state_code_known",
+          "severity": "warning",
+          "description": "state_code is a US state or territory",
+          "threshold": ">= 0.99",
+          "value": 0.9790463840254813,
+          "passed": false
+        },
+        {
+          "name": "denial_rate_in_decisions",
+          "severity": "warning",
+          "description": "share of decided applications denied",
+          "threshold": "between 0.05 and 0.50",
+          "value": 0.24949067085611698,
+          "passed": true
+        },
+        {
+          "name": "derived_race_present",
+          "severity": "warning",
+          "description": "derived_race populated (Race Not Available counts as present)",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "rows_reconcile_with_bronze",
+          "severity": "critical",
+          "description": "silver row count equals bronze (11,483,889)",
+          "threshold": "= 11483889",
+          "value": 11483889.0,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "year": 2024,
+      "rows": 12229298,
+      "generated_at": "2026-10-18T07:02:47+00:00",
+      "critical_failures": 0,
+      "warnings": 1,
+      "results": [
+        {
+          "name": "action_taken_valid",
+          "severity": "critical",
+          "description": "action_taken is one of the 8 HMDA codes",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "loan_amount_present",
+          "severity": "critical",
+          "description": "loan_amount is reported",
+          "threshold": ">= 0.999",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "loan_amount_positive",
+          "severity": "critical",
+          "description": "reported loan_amount is above zero",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "lei_format",
+          "severity": "critical",
+          "description": "lei is a 20-character Legal Entity Identifier",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "dti_parser_coverage",
+          "severity": "critical",
+          "description": "every non-sentinel debt_to_income_ratio string parses",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "income_present_in_decisions",
+          "severity": "warning",
+          "description": "income reported on decided applications",
+          "threshold": ">= 0.85",
+          "value": 0.9369238603530241,
+          "passed": true
+        },
+        {
+          "name": "property_value_present_in_decisions",
+          "severity": "warning",
+          "description": "property_value reported on decided applications",
+          "threshold": ">= 0.85",
+          "value": 0.934261579065227,
+          "passed": true
+        },
+        {
+          "name": "income_plausible",
+          "severity": "warning",
+          "description": "reported income between -$1M and $100M (thousands)",
+          "threshold": ">= 0.999",
+          "value": 0.9999486272571719,
+          "passed": true
+        },
+        {
+          "name": "cltv_plausible",
+          "severity": "warning",
+          "description": "reported CLTV in (0, 300] percent",
+          "threshold": ">= 0.99",
+          "value": 0.999609156472533,
+          "passed": true
+        },
+        {
+          "name": "state_code_known",
+          "severity": "warning",
+          "description": "state_code is a US state or territory",
+          "threshold": ">= 0.99",
+          "value": 0.9823536886581715,
+          "passed": false
+        },
+        {
+          "name": "denial_rate_in_decisions",
+          "severity": "warning",
+          "description": "share of decided applications denied",
+          "threshold": "between 0.05 and 0.50",
+          "value": 0.24314792270735006,
+          "passed": true
+        },
+        {
+          "name": "derived_race_present",
+          "severity": "warning",
+          "description": "derived_race populated (Race Not Available counts as present)",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "rows_reconcile_with_bronze",
+          "severity": "critical",
+          "description": "silver row count equals bronze (12,229,298)",
+          "threshold": "= 12229298",
+          "value": 12229298.0,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "year": 2025,
+      "rows": 13543606,
+      "generated_at": "2026-10-18T07:02:48+00:00",
+      "critical_failures": 0,
+      "warnings": 1,
+      "results": [
+        {
+          "name": "action_taken_valid",
+          "severity": "critical",
+          "description": "action_taken is one of the 8 HMDA codes",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "loan_amount_present",
+          "severity": "critical",
+          "description": "loan_amount is reported",
+          "threshold": ">= 0.999",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "loan_amount_positive",
+          "severity": "critical",
+          "description": "reported loan_amount is above zero",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "lei_format",
+          "severity": "critical",
+          "description": "lei is a 20-character Legal Entity Identifier",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "dti_parser_coverage",
+          "severity": "critical",
+          "description": "every non-sentinel debt_to_income_ratio string parses",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "income_present_in_decisions",
+          "severity": "warning",
+          "description": "income reported on decided applications",
+          "threshold": ">= 0.85",
+          "value": 0.9201743798861268,
+          "passed": true
+        },
+        {
+          "name": "property_value_present_in_decisions",
+          "severity": "warning",
+          "description": "property_value reported on decided applications",
+          "threshold": ">= 0.85",
+          "value": 0.9304478117693711,
+          "passed": true
+        },
+        {
+          "name": "income_plausible",
+          "severity": "warning",
+          "description": "reported income between -$1M and $100M (thousands)",
+          "threshold": ">= 0.999",
+          "value": 0.9999214358012474,
+          "passed": true
+        },
+        {
+          "name": "cltv_plausible",
+          "severity": "warning",
+          "description": "reported CLTV in (0, 300] percent",
+          "threshold": ">= 0.99",
+          "value": 0.9997144478796873,
+          "passed": true
+        },
+        {
+          "name": "state_code_known",
+          "severity": "warning",
+          "description": "state_code is a US state or territory",
+          "threshold": ">= 0.99",
+          "value": 0.9873911718932166,
+          "passed": false
+        },
+        {
+          "name": "denial_rate_in_decisions",
+          "severity": "warning",
+          "description": "share of decided applications denied",
+          "threshold": "between 0.05 and 0.50",
+          "value": 0.22594841416601022,
+          "passed": true
+        },
+        {
+          "name": "derived_race_present",
+          "severity": "warning",
+          "description": "derived_race populated (Race Not Available counts as present)",
+          "threshold": "= 1.0",
+          "value": 1.0,
+          "passed": true
+        },
+        {
+          "name": "rows_reconcile_with_bronze",
+          "severity": "critical",
+          "description": "silver row count equals bronze (13,543,606)",
+          "threshold": "= 13543606",
+          "value": 13543606.0,
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "critical_failures": 0,
+  "warnings": 3
+}

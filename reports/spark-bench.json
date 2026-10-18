@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-10-18T07:44:53+00:00",
+  "benchmark": "silver stage (typing and decoding one year of bronze into Delta)",
+  "repeats_per_core_count": 1,
+  "year": 2025,
+  "host": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpus": 20,
+    "mem_total_gb": 15.5,
+    "cpu_model": "13th Gen Intel(R) Core(TM) i5-13600KF"
+  },
+  "runs": [
+    {
+      "cores": 1,
+      "seconds": [
+        553.47
+      ],
+      "best_s": 553.47,
+      "rows": 13543606,
+      "rows_per_s": 24470,
+      "speedup": 1.0
+    },
+    {
+      "cores": 2,
+      "seconds": [
+        287.44
+      ],
+      "best_s": 287.44,
+      "rows": 13543606,
+      "rows_per_s": 47118,
+      "speedup": 1.93
+    },
+    {
+      "cores": 4,
+      "seconds": [
+        205.34
+      ],
+      "best_s": 205.34,
+      "rows": 13543606,
+      "rows_per_s": 65957,
+      "speedup": 2.7
+    },
+    {
+      "cores": 8,
+      "seconds": [
+        111.31
+      ],
+      "best_s": 111.31,
+      "rows": 13543606,
+      "rows_per_s": 121675,
+      "speedup": 4.97
+    },
+    {
+      "cores": 16,
+      "seconds": [
+        92.97
+      ],
+      "best_s": 92.97,
+      "rows": 13543606,
+      "rows_per_s": 145677,
+      "speedup": 5.95
+    }
+  ]
+}
