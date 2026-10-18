@@ -113,8 +113,9 @@ NUMERIC_FEATURES: tuple[Feature, ...] = (
 )
 
 # Ratios the model derives inside its graph from the inputs above (training and serving share the code).
-# combined_loan_to_value_ratio is NOT an input: lenders leave it NA on about half of denials because they
-# stop before computing it, so its missingness predicts the label (see reports/leakage-audit.json).
+# combined_loan_to_value_ratio is NOT an input: on the 2023 training year it is filled in for 96% of
+# approvals but 73% of denials (lenders stop before computing it), so its missingness predicts the label.
+# See reports/leakage-audit.json.
 DERIVED_FEATURES: tuple[Feature, ...] = (
     Feature("loan_to_value", "derived", "loan_amount / property_value", "Value or type of collateral not sufficient"),
     Feature(
@@ -144,7 +145,6 @@ CATEGORICAL_FEATURES: tuple[Feature, ...] = (
         "",
     ),
     Feature("submission_of_application", "categorical", "Submitted directly to the institution or not", ""),
-    Feature("initially_payable_to_institution", "categorical", "Loan initially payable to the institution", ""),
     Feature("preapproval", "categorical", "1 preapproval requested, 2 not requested", ""),
     Feature(
         "conforming_loan_limit",
@@ -161,8 +161,10 @@ FEATURE_NAMES = NUMERIC + CATEGORICAL
 # Attribution groups the explain signature reports, in this order: every input plus the derived ratios.
 ATTRIBUTION_GROUPS: tuple[Feature, ...] = NUMERIC_FEATURES + DERIVED_FEATURES + CATEGORICAL_FEATURES
 
-# Fields the leakage audit screens besides the features: the ones excluded for leaking.
-EXCLUDED_FOR_LEAKAGE = ("combined_loan_to_value_ratio", "aus_1")
+# Fields the leakage audit flagged on the 2023 training year (availability gap between approved and denied
+# applications above 0.10): CLTV 0.22, the AUS result 0.35, and "initially payable to the institution" 0.12
+# (HMDA records "not applicable" when no loan is made). They are screened every run but never model inputs.
+EXCLUDED_FOR_LEAKAGE = ("combined_loan_to_value_ratio", "aus_1", "initially_payable_to_institution")
 
 # Never model inputs. Protected bases and tract demographics are kept so the fair-lending audit can use
 # them; geography and the lender are kept for grouping. Using any of them as a feature is how a model
@@ -256,7 +258,7 @@ SILVER_CODES = (
     "denial_reason_2",
     "denial_reason_3",
     "denial_reason_4",
-    "aus_1",
+    *EXCLUDED_FOR_LEAKAGE[1:],  # aus_1 and initially_payable_to_institution are codes; CLTV is numeric
     *CATEGORICAL,
 )
 SILVER_TEXT = (
