@@ -16,9 +16,8 @@ build/
 !.env.example
 
 # Raw downloads, the Delta lakehouse and training exports are rebuilt by the pipeline
-data/
+data/*
 !data/sample/
-!data/sample/**
 spark-warehouse/
 metastore_db/
 derby.log
