@@ -10,7 +10,7 @@ import pytest
 
 from ldp.config import Settings
 
-pytestmark = pytest.mark.spark
+pytestmark = [pytest.mark.spark, pytest.mark.tf]
 
 
 def test_pipeline_end_to_end(spark, fixture_csv, tmp_path: Path) -> None:
@@ -37,3 +37,19 @@ def test_pipeline_end_to_end(spark, fixture_csv, tmp_path: Path) -> None:
     assert [s["split"] for s in dataset["splits"]] == ["train", "valid", "test"]
     assert all((tmp_path / "training" / s).is_dir() for s in ("train", "valid", "test"))
 
+    # Train on the exported fixture splits, score a year in Spark with the SavedModel, render the model card.
+    pytest.importorskip("tensorflow")
+    from ldp.spark.score import score_year
+    from ldp.training.model_card import render
+    from ldp.training.train import train_and_evaluate
+
+    settings = settings.model_copy(update={"models_dir": tmp_path / "models"})
+    payload = train_and_evaluate(settings, epochs=1, batch_size=128)
+    assert set(payload["models"]) == {"tensorflow", "logistic_regression", "xgboost"}
+    assert 0.0 <= payload["models"]["tensorflow"]["test"]["auc"] <= 1.0  # 1 epoch on ~250 rows: wiring, not skill
+    model_dir = tmp_path / "models" / "ldp" / "1"
+    assert (model_dir / "saved_model.pb").exists() and (model_dir / "metadata.json").exists()
+    scored = score_year(spark, settings.lake("gold"), str(model_dir), settings.lake("scores"), 2025, partitions=2)
+    assert scored.count() == dataset["splits"][2]["rows"]
+    card = render(tmp_path / "reports", model_dir)
+    assert "## Fair-lending audit" in card and "TensorFlow MLP (this model)" in card
