@@ -36,3 +36,4 @@ def test_pipeline_end_to_end(spark, fixture_csv, tmp_path: Path) -> None:
     dataset = json.loads((tmp_path / "reports" / "dataset.json").read_text())
     assert [s["split"] for s in dataset["splits"]] == ["train", "valid", "test"]
     assert all((tmp_path / "training" / s).is_dir() for s in ("train", "valid", "test"))
+

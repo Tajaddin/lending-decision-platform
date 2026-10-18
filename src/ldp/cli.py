@@ -27,13 +27,16 @@ def pipeline(
     years: Annotated[str, typer.Option(help="comma-separated activity years")] = "2023,2024,2025",
     raw_dir: Annotated[Path, typer.Option(help="folder with <year>_public_lar_csv.csv files")] = Path("data/raw"),
     master: Annotated[str | None, typer.Option(help="Spark master, e.g. local[8]")] = None,
+    stages: Annotated[str, typer.Option(help="comma-separated subset of bronze,silver,quality,gold,audit,export")] = "",
 ) -> None:
     """bronze -> silver -> quality -> gold -> leakage audit -> training export."""
-    from ldp.pipeline import host_info, run_pipeline, write_json
+    from ldp.pipeline import ALL_STAGES, host_info, run_pipeline, write_json
 
     settings = get_settings()
-    result = run_pipeline(settings, _years(years), raw_dir, master=master)
-    write_json({"host": host_info(), **result}, settings.reports_dir / "pipeline-run.json")
+    chosen = tuple(s.strip() for s in stages.split(",") if s.strip()) or ALL_STAGES
+    result = run_pipeline(settings, _years(years), raw_dir, master=master, stages=chosen)
+    name = "pipeline-run.json" if chosen == ALL_STAGES else f"pipeline-run-{'-'.join(chosen)}.json"
+    write_json({"host": host_info(), "stages": list(chosen), **result}, settings.reports_dir / name)
     typer.echo(f"done: {result['timings_s']}")
 
 
