@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.bats text eol=lf
+*.parquet binary
+*.pb binary
+*.zip binary
+models/** binary
