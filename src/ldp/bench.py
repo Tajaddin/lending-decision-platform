@@ -1,7 +1,8 @@
 """Core-scaling benchmark for the silver stage: same year, same input, local[n] for several n.
 
 Each run writes to a scratch Delta path, so the real silver table is untouched. One untimed warm-up run
-first, so JVM start-up and the Delta jar resolution are not charged to the first core count.
+first, so JVM start-up and the Delta jar resolution are not charged to the first core count. Each core count
+then gets `repeats` timed runs (default 1: a 1-core run of a 13.5M-row year takes minutes).
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from ldp.pipeline import host_info, write_json
 log = get_logger(__name__)
 
 
-def bench_silver(settings: Settings, year: int, cores: list[int], repeats: int = 2) -> dict[str, object]:
+def bench_silver(settings: Settings, year: int, cores: list[int], repeats: int = 1) -> dict[str, object]:
     from pyspark.sql import SparkSession
 
     from ldp.spark.session import get_spark
@@ -26,7 +27,7 @@ def bench_silver(settings: Settings, year: int, cores: list[int], repeats: int =
     bronze = settings.lake("bronze")
     scratch = f"{settings.lake_root}/_bench_silver"
     runs = []
-    for i, n in enumerate([cores[0], *cores]):
+    for i, n in enumerate([max(cores), *cores]):  # warm-up on the most cores: same JVM work, shortest wait
         active = SparkSession.getActiveSession()
         if active is not None:
             active.stop()
@@ -50,6 +51,7 @@ def bench_silver(settings: Settings, year: int, cores: list[int], repeats: int =
         r["speedup"] = round(float(base) / float(r["best_s"]), 2)  # type: ignore[arg-type]
     result = {
         "benchmark": "silver stage (typing and decoding one year of bronze into Delta)",
+        "repeats_per_core_count": repeats,
         "year": year,
         "host": host_info(),
         "runs": runs,

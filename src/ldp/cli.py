@@ -44,12 +44,13 @@ def pipeline(
 def bench_silver(
     year: int = 2025,
     cores: Annotated[str, typer.Option(help="comma-separated core counts")] = "1,2,4,8,16",
+    repeats: int = 1,
 ) -> None:
     """Time the silver stage at several core counts on one year (bronze must exist)."""
     from ldp.bench import bench_silver as run
 
     settings = get_settings()
-    run(settings, year, [int(c) for c in cores.split(",")])
+    run(settings, year, [int(c) for c in cores.split(",")], repeats=repeats)
 
 
 @app.command()
