@@ -12,6 +12,7 @@ locals {
     "iamcredentials.googleapis.com",
     "sts.googleapis.com",
     "monitoring.googleapis.com",
+    "billingbudgets.googleapis.com",
   ]
   app_image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.images.repository_id}/app:${var.image_tag}"
 }

@@ -1,0 +1,37 @@
+{
+  "measured_at": "2026-10-18T20:55:06+00:00",
+  "url": "https://ldp-api-llwaky6tma-uc.a.run.app",
+  "ready": {
+    "status": 200,
+    "ready": true,
+    "model_version_expected": "1",
+    "model_version_served": "1"
+  },
+  "decision_ms": [
+    169.3,
+    124.4,
+    112.1,
+    167.6,
+    112.6
+  ],
+  "decision": {
+    "decisions": [
+      {
+        "application_id": "demo-1",
+        "decision": "approve_path",
+        "probability": 0.056011,
+        "threshold": 0.13817642455716747,
+        "reasons": [],
+        "model_version": "1"
+      }
+    ]
+  },
+  "status_without_key": 401,
+  "bigquery_events": {
+    "table": "lending.decisions",
+    "before": 5,
+    "after": 10,
+    "seconds_waited": 5
+  },
+  "note": "client on a home connection in Tampa, FL; API in us-central1; latencies include the network"
+}

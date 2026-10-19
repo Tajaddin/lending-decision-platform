@@ -1,0 +1,35 @@
+{
+  "run_id": 717897570156858,
+  "job": "hmda-pipeline-free",
+  "result": "SUCCESS",
+  "start_time_ms": 1792357164114,
+  "end_time_ms": 1792357604861,
+  "wall_s": 440.7,
+  "compute": "Databricks Free Edition, serverless (environment client 3)",
+  "tasks": [
+    {
+      "task": "gold_audit_export",
+      "result": "SUCCESS",
+      "attempt": 0,
+      "wall_s": 98.6,
+      "setup_s": 1.0,
+      "execution_s": 97.0
+    },
+    {
+      "task": "quality",
+      "result": "SUCCESS",
+      "attempt": 0,
+      "wall_s": 30.6,
+      "setup_s": 1.0,
+      "execution_s": 29.0
+    },
+    {
+      "task": "bronze_silver",
+      "result": "SUCCESS",
+      "attempt": 0,
+      "wall_s": 310.2,
+      "setup_s": 3.0,
+      "execution_s": 307.0
+    }
+  ]
+}

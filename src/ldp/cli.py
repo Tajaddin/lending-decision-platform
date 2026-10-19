@@ -105,7 +105,7 @@ def score_batch(
 
     from ldp.pipeline import host_info, write_json
     from ldp.spark.score import score_year
-    from ldp.spark.session import get_spark
+    from ldp.spark.session import get_spark, spark_info
 
     settings = get_settings()
     spark = get_spark("ldp-score", master=master)
@@ -124,7 +124,7 @@ def score_batch(
             "seconds": round(seconds, 1),
             "rows_per_s": round(rows / seconds),
             "partitions": partitions,
-            "master": spark.sparkContext.master,
+            "master": spark_info(spark)["master"],
             "host": host_info(),
         },
         Path(settings.reports_dir) / "batch-scoring.json",
@@ -226,5 +226,15 @@ def download(years: str = "2023,2024,2025", out_dir: Path = Path("data/raw")) ->
         subprocess.run(["bash", str(script), str(year), str(out_dir)], check=True)
 
 
+def run() -> None:
+    """The `ldp` entry point. Click ends even a successful command with SystemExit(0); Databricks serverless runs
+    wheel tasks in a kernel that reports any SystemExit as a failed task, so a clean exit returns instead."""
+    try:
+        app()
+    except SystemExit as exc:
+        if exc.code not in (0, None):
+            raise
+
+
 if __name__ == "__main__":
-    app()
+    run()

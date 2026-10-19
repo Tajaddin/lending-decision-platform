@@ -56,7 +56,7 @@ def run_pipeline(
         raise ValueError(f"unknown stages {sorted(unknown)}; choose from {ALL_STAGES}")
     from ldp.audit import assert_features_clean, candidates, is_powered, run_audit, write_audit
     from ldp.spark import bronze, gold, lake, quality, silver
-    from ldp.spark.session import get_spark
+    from ldp.spark.session import get_spark, spark_info
 
     timer = StageTimer()
     spark = get_spark("ldp-pipeline", master=master)
@@ -123,11 +123,7 @@ def run_pipeline(
             gold.write_manifest(exports, settings.reports_dir / "dataset.json")
 
     result["timings_s"] = timer.timings
-    result["spark"] = {
-        "master": spark.sparkContext.master,
-        "version": spark.version,
-        "default_parallelism": spark.sparkContext.defaultParallelism,
-    }
+    result["spark"] = spark_info(spark)
     return result
 
 

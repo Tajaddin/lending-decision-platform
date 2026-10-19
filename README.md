@@ -28,9 +28,11 @@ protected groups worse than the lenders already do (disparate impact).
 | Stability | Score PSI vs 2023: 0.004 on 2024, 0.016 on 2025; largest input shift `applicant_credit_score_type` (PSI 0.174). Replaying 5,000 real 2025 applications through the live stack, the monitor measured 0.185 for the same input | [`psi.json`](reports/psi.json), [`replay-monitor.json`](reports/replay-monitor.json) |
 | Spark | Silver stage on the 13.5M-row 2025 year: **553 s on 1 core, 93 s on 16 (5.95x)**; batch scoring of all 5.44M 2025 applications with the SavedModel in **19.3 s** on 8 cores | [`spark-bench.json`](reports/spark-bench.json), [`batch-scoring.json`](reports/batch-scoring.json) |
 | Online serving (k6, 2 API workers + TF Serving on one machine) | **0 failures, p99 36 ms at 400 req/s**; p99 229 ms at 600 req/s with 0.34% shed; at 800 req/s 30.8% is shed with fast 503s and the service recovers at once (the first version broke permanently under that load; see the [Sprint 3 retro](docs/sprints/sprint-3.md)) | [`reports/k6/`](reports/k6) |
+| On Databricks (Free Edition, serverless) | The same bundle job ran the whole pipeline on the 14 GB of CSV in **441 s**, first attempt; every row count, quality result, leakage flag and split is **identical to the local run** | [`reports/databricks/`](reports/databricks) |
+| On GCP (Cloud Run with the TF Serving sidecar, Pub/Sub, BigQuery) | Serves model v1; decisions in 112-169 ms from a home connection in Tampa; 401 without a key; every decision **in BigQuery within 5 s** through the Pub/Sub subscription | [`reports/cloud/smoke.json`](reports/cloud/smoke.json) |
 
-Hardware for every timing: one desktop, Intel i5-13600KF (14 cores / 20 threads), WSL2 Ubuntu 24.04 with 15.5 GB,
-data on the WSL ext4 disk. Nothing is deployed to a cloud account yet (see [Limitations](#limitations)).
+Hardware for every local timing: one desktop, Intel i5-13600KF (14 cores / 20 threads), WSL2 Ubuntu 24.04 with
+15.5 GB, data on the WSL ext4 disk. The Databricks and GCP rows ran on 2026-10-18 ([docs/DEPLOY.md](docs/DEPLOY.md)).
 
 ## Architecture
 
@@ -86,14 +88,17 @@ Tests: `make check` (unit, Spark and TensorFlow tests with coverage, shellcheck,
   a provisioned Grafana dashboard.
 - **Infrastructure as code**: Terraform for Cloud Run (TF Serving sidecar, model from Cloud Storage), Pub/Sub
   with a BigQuery subscription and dead-lettering, Secret Manager, Workload Identity Federation, budget alert;
-  validated, linted (tflint) and scanned (trivy) in CI. Databricks Asset Bundle validated against the CLI schema.
+  validated, linted (tflint) and scanned (trivy) in CI, and applied to a GCP project (49 resources). Databricks
+  Asset Bundle deployed and run on Free Edition serverless compute. The first real runs found four bugs the local
+  stack could not: see the [cloud retro](docs/sprints/cloud-deploy.md).
 - **Process**: sprints as GitHub milestones with user stories and story points, one PR per sprint, retros in
   [docs/sprints](docs/sprints).
 
 ## Limitations
 
-- **Not deployed.** The GCP Terraform and the Databricks bundle are validated, not applied: both need accounts.
-  Steps: [docs/DEPLOY.md](docs/DEPLOY.md).
+- **Cloud timings are a single run each.** Cloud Run latencies are from one home connection, so mostly network,
+  and Cloud Run was not load tested. Keyless deploys from GitHub Actions are provisioned but not switched on (the
+  repository variables are not set). Steps: [docs/DEPLOY.md](docs/DEPLOY.md).
 - **The label is the lender's decision, not repayment**, and HMDA has no credit score or history. The model
   predicts what lenders did; it inherits their practices and cannot cite credit reasons.
 - **The fairness audit fails, and so does the best alternative found.** The model is a demonstration of the full
