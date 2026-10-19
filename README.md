@@ -24,6 +24,7 @@ protected groups worse than the lenders already do (disparate impact).
 | Baselines on the same split | XGBoost AUC 0.871, logistic regression 0.806: the network matches gradient boosting and beats the linear model by 0.064 | same |
 | Reasons vs lenders | On 20,000 real 2025 denials, the lender's stated reason (debt-to-income or collateral) is the model's top reason **71.1%** of the time and among its top four **93.0%** | same |
 | Fair lending | Audit **fails** the model for age 62+ (AIR 0.761 vs the lenders' 0.930) and for Black applicants (0.759 vs 0.827): it would widen existing gaps, so the model card marks it **not approved** | [`fairness.json`](reports/fairness.json), [model card](docs/MODEL-CARD.md) |
+| Less discriminatory alternative | 9 training runs (reweighing, two equalized-odds penalties), chosen on 2024, scored once on 2025: the best **closes all five of v1's gaps** (age 62+ 0.955, Black 0.872) for 0.025 AUC and 40.5% referrals instead of 32.7%, but **newly flags Asian applicants** (1.002 vs the lenders' 1.036), so nothing is approved yet | [`lda-search.json`](reports/lda-search.json), [ADR 0010](docs/adr/0010-protected-attributes-may-shape-the-training-loss.md) |
 | Stability | Score PSI vs 2023: 0.004 on 2024, 0.016 on 2025; largest input shift `applicant_credit_score_type` (PSI 0.174). Replaying 5,000 real 2025 applications through the live stack, the monitor measured 0.185 for the same input | [`psi.json`](reports/psi.json), [`replay-monitor.json`](reports/replay-monitor.json) |
 | Spark | Silver stage on the 13.5M-row 2025 year: **553 s on 1 core, 93 s on 16 (5.95x)**; batch scoring of all 5.44M 2025 applications with the SavedModel in **19.3 s** on 8 cores | [`spark-bench.json`](reports/spark-bench.json), [`batch-scoring.json`](reports/batch-scoring.json) |
 | Online serving (k6, 2 API workers + TF Serving on one machine) | **0 failures, p99 36 ms at 400 req/s**; p99 229 ms at 600 req/s with 0.34% shed; at 800 req/s 30.8% is shed with fast 503s and the service recovers at once (the first version broke permanently under that load; see the [Sprint 3 retro](docs/sprints/sprint-3.md)) | [`reports/k6/`](reports/k6) |
@@ -100,7 +101,10 @@ Tests: `make check` (unit, Spark and TensorFlow tests with coverage, shellcheck,
   repository variables are not set). Steps: [docs/DEPLOY.md](docs/DEPLOY.md).
 - **The label is the lender's decision, not repayment**, and HMDA has no credit score or history. The model
   predicts what lenders did; it inherits their practices and cannot cite credit reasons.
-- **The fairness audit fails.** The model is a demonstration of the full lifecycle, including a gate that
-  rejects it. See the model card for the drivers and the less-discriminatory-alternative search.
+- **The fairness audit fails, and so does the best alternative found.** The model is a demonstration of the full
+  lifecycle, including a gate that rejects it. The less-discriminatory-alternative search fixes v1's five flagged
+  groups on 2025 but trips the audit's "no more than 0.02 below the lenders" rule for Asian applicants at parity
+  with White applicants; whether that rule should apply at parity is a policy question, left open. See the model
+  card for the drivers, the trade-off table and the reasons.
 - XGBoost is 0.0014 AUC ahead; the TensorFlow model is served because preprocessing and explanations ship in one
   SavedModel behind TF Serving (ADR 0004, 0005).

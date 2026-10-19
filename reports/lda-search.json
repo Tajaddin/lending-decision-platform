@@ -1,0 +1,1535 @@
+{
+  "issue": 27,
+  "generated_at": "2026-10-18T19:53:45+00:00",
+  "protocol": {
+    "train": "all of 2023 (4,629,490 applications), v1 recipe",
+    "early_stopping": "the fixed 1,000,000-row sample of 2024 v1 used (seed 3), val AUC",
+    "calibration_and_threshold": "Platt scaling and the 80%-recall threshold on all of 2024 (5,007,151 applications)",
+    "selection": "fairness.audit on all of 2024; among variants that pass the 2024 audit, the highest 2024 AUC; if none passes, the smallest worst shortfall",
+    "holdout": "2025 scored once, for the chosen variant only (`lda_search.py holdout`)",
+    "inputs": "the 15 v1 inputs; protected attributes enter only the loss (ADR 0010)"
+  },
+  "reference": {
+    "name": "v1 (committed SavedModel)",
+    "valid_2024": {
+      "rows": 5007151,
+      "auc": 0.8802239503677814,
+      "ece": 0.007457629664960558,
+      "threshold": 0.13817642455716747,
+      "referral_rate": 0.31117455814693823,
+      "recall_of_denials": 0.7999980205880832,
+      "precision": 0.46690708800088315,
+      "groups": [
+        {
+          "dimension": "race",
+          "group": "Black or African American",
+          "reference": "White",
+          "n": 476372,
+          "observed_air": 0.8358805112525858,
+          "model_air": 0.7798827942831212,
+          "shortfall": 0.03599771696946452
+        },
+        {
+          "dimension": "race",
+          "group": "Asian",
+          "reference": "White",
+          "n": 337551,
+          "observed_air": 1.0455151375676974,
+          "model_air": 1.2062277226615215,
+          "shortfall": -0.18071258509382404
+        },
+        {
+          "dimension": "race",
+          "group": "American Indian or Alaska Native",
+          "reference": "White",
+          "n": 38443,
+          "observed_air": 0.8313590605144435,
+          "model_air": 0.7860043770798769,
+          "shortfall": 0.025354683434566594
+        },
+        {
+          "dimension": "race",
+          "group": "Native Hawaiian or Other Pacific Islander",
+          "reference": "White",
+          "n": 10331,
+          "observed_air": 0.8789980434735012,
+          "model_air": 0.8552633126827738,
+          "shortfall": 0.003734730790727392
+        },
+        {
+          "dimension": "race",
+          "group": "2 or more minority races",
+          "reference": "White",
+          "n": 13260,
+          "observed_air": 0.859577711710336,
+          "model_air": 0.8834352832141651,
+          "shortfall": -0.043857571503829074
+        },
+        {
+          "dimension": "ethnicity",
+          "group": "Hispanic or Latino",
+          "reference": "Not Hispanic or Latino",
+          "n": 670655,
+          "observed_air": 0.9229556911621476,
+          "model_air": 0.960761806741123,
+          "shortfall": -0.057806115578975414
+        },
+        {
+          "dimension": "sex",
+          "group": "Female",
+          "reference": "Male",
+          "n": 1150963,
+          "observed_air": 0.9547906207725871,
+          "model_air": 0.9316235861020866,
+          "shortfall": 0.0031670346705005015
+        },
+        {
+          "dimension": "age",
+          "group": "Yes",
+          "reference": "No",
+          "n": 717944,
+          "observed_air": 0.9334980090708429,
+          "model_air": 0.7567206213690556,
+          "shortfall": 0.15677738770178729
+        }
+      ],
+      "flags": [
+        "race:Black or African American",
+        "race:American Indian or Alaska Native",
+        "race:Native Hawaiian or Other Pacific Islander",
+        "sex:Female",
+        "age:Yes"
+      ],
+      "passes_audit": false,
+      "worst_group": "age:Yes",
+      "worst_shortfall": 0.15677738770178729,
+      "min_model_minus_observed_air": -0.1767773877017873
+    }
+  },
+  "operating_rule_sensitivity_v1": [
+    {
+      "recall_target": 0.7,
+      "threshold": 0.2283601015806198,
+      "referral_rate": 0.21006616337314374,
+      "recall_of_denials": 0.7000003299019861,
+      "flags": [
+        "race:American Indian or Alaska Native",
+        "age:Yes"
+      ],
+      "worst_group": "age:Yes",
+      "worst_shortfall": 0.030383840604170542,
+      "model_air": {
+        "race:Black or African American": 0.830461094252752,
+        "race:Asian": 1.116539582040452,
+        "race:American Indian or Alaska Native": 0.8112415799837167,
+        "race:Native Hawaiian or Other Pacific Islander": 0.8866376311251001,
+        "race:2 or more minority races": 0.8913157109786254,
+        "ethnicity:Hispanic or Latino": 0.953147568646584,
+        "sex:Female": 0.9461471164673358,
+        "age:Yes": 0.8831141684666723
+      }
+    },
+    {
+      "recall_target": 0.75,
+      "threshold": 0.1800946444272995,
+      "referral_rate": 0.25411975792221964,
+      "recall_of_denials": 0.7500002749183218,
+      "flags": [
+        "race:Black or African American",
+        "race:American Indian or Alaska Native",
+        "age:Yes"
+      ],
+      "worst_group": "age:Yes",
+      "worst_shortfall": 0.08559158916479692,
+      "model_air": {
+        "race:Black or African American": 0.802992267382131,
+        "race:Asian": 1.1573858350530686,
+        "race:American Indian or Alaska Native": 0.7989962113471486,
+        "race:Native Hawaiian or Other Pacific Islander": 0.8715924976564349,
+        "race:2 or more minority races": 0.8875241531495685,
+        "ethnicity:Hispanic or Latino": 0.9601935686572737,
+        "sex:Female": 0.9434644511164659,
+        "age:Yes": 0.827906419906046
+      }
+    },
+    {
+      "recall_target": 0.8,
+      "threshold": 0.13817639648914337,
+      "referral_rate": 0.3111755567187808,
+      "recall_of_denials": 0.8000024192812315,
+      "flags": [
+        "race:Black or African American",
+        "race:American Indian or Alaska Native",
+        "race:Native Hawaiian or Other Pacific Islander",
+        "sex:Female",
+        "age:Yes"
+      ],
+      "worst_group": "age:Yes",
+      "worst_shortfall": 0.1567761511081408,
+      "model_air": {
+        "race:Black or African American": 0.7798808552716893,
+        "race:Asian": 1.2062293254558134,
+        "race:American Indian or Alaska Native": 0.7860054214957077,
+        "race:Native Hawaiian or Other Pacific Islander": 0.855264449127518,
+        "race:2 or more minority races": 0.8834364570928637,
+        "ethnicity:Hispanic or Latino": 0.9607633895969119,
+        "sex:Female": 0.9316235861020866,
+        "age:Yes": 0.7567218579627021
+      }
+    },
+    {
+      "recall_target": 0.85,
+      "threshold": 0.10071447491645813,
+      "referral_rate": 0.39139422797514994,
+      "recall_of_denials": 0.8500001649509931,
+      "flags": [
+        "race:Black or African American",
+        "race:American Indian or Alaska Native",
+        "race:Native Hawaiian or Other Pacific Islander",
+        "sex:Female",
+        "age:Yes"
+      ],
+      "worst_group": "age:Yes",
+      "worst_shortfall": 0.1978403458613518,
+      "model_air": {
+        "race:Black or African American": 0.7457138821640534,
+        "race:Asian": 1.256499017547812,
+        "race:American Indian or Alaska Native": 0.7581141916760555,
+        "race:Native Hawaiian or Other Pacific Islander": 0.8420927977394722,
+        "race:2 or more minority races": 0.8725613925501948,
+        "ethnicity:Hispanic or Latino": 0.9259929346302339,
+        "sex:Female": 0.919098969490104,
+        "age:Yes": 0.7156576632094911
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "name": "reweighing",
+      "method": "Kamiran & Calders (2012) reweighing over age 62+ x race x sex cells",
+      "params": {
+        "cells": [
+          "applicant_age_above_62",
+          "derived_race",
+          "derived_sex"
+        ],
+        "weight_range": [
+          0.1864665448665619,
+          11.93182373046875
+        ]
+      },
+      "epochs_run": 5,
+      "best_val_auc_sample": 0.878917396068573,
+      "train_seconds": 84.6,
+      "calibration": {
+        "a": 0.991270428299088,
+        "b": -0.06628513814978844
+      },
+      "weights_file": "reweighing.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8781782960753195,
+        "ece": 0.009428754612137411,
+        "threshold": 0.13919174176067267,
+        "referral_rate": 0.3139461941531222,
+        "recall_of_denials": 0.8000002199346574,
+        "precision": 0.4627863275266289,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.799224422661474,
+            "shortfall": 0.016656088591111784
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.2021997959536113,
+            "shortfall": -0.17668465838591385
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.807800247082964,
+            "shortfall": 0.0035588134314794573
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.8645496493331601,
+            "shortfall": -0.00555160585965897
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.9032624132298148,
+            "shortfall": -0.0636847015194788
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.972698631258486,
+            "shortfall": -0.06974294009633841
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.940834491860648,
+            "shortfall": -0.006043871088060926
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.754118345452873,
+            "shortfall": 0.15937966361796985
+          }
+        ],
+        "flags": [
+          "race:Black or African American",
+          "race:American Indian or Alaska Native",
+          "age:Yes"
+        ],
+        "passes_audit": false,
+        "worst_group": "age:Yes",
+        "worst_shortfall": 0.15937966361796985,
+        "min_model_minus_observed_air": -0.17937966361796986
+      }
+    },
+    {
+      "name": "v1 recipe re-run (lambda=0)",
+      "method": "cross-entropy + lambda x squared group gaps in mean logit, among approved and among denied",
+      "params": {
+        "penalty": "mean_logit",
+        "lambda": 0.0,
+        "comparisons": [
+          [
+            "applicant_age_above_62",
+            "Yes",
+            "No"
+          ],
+          [
+            "derived_race",
+            "Black or African American",
+            "White"
+          ],
+          [
+            "derived_sex",
+            "Female",
+            "Male"
+          ]
+        ],
+        "estimator": "batch mean"
+      },
+      "epochs_run": 5,
+      "best_val_auc_sample": 0.8809517025947571,
+      "train_seconds": 91.4,
+      "calibration": {
+        "a": 0.9583689672689003,
+        "b": -0.10243769987283693
+      },
+      "weights_file": "v1-recipe-re-run-lambda-0.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8802239504486913,
+        "ece": 0.0074577594514752205,
+        "threshold": 0.13817642455716747,
+        "referral_rate": 0.3111755567187808,
+        "recall_of_denials": 0.8000024192812315,
+        "precision": 0.4669081569061866,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.7798808552716893,
+            "shortfall": 0.035999655980896494
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.2062293254558134,
+            "shortfall": -0.180714187888116
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.7860054214957077,
+            "shortfall": 0.025353639018735774
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.855264449127518,
+            "shortfall": 0.0037335943459831933
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.8834364570928637,
+            "shortfall": -0.04385874538252765
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.9607633895969119,
+            "shortfall": -0.0578076984347643
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.9316235861020866,
+            "shortfall": 0.0031670346705005015
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.7567218579627021,
+            "shortfall": 0.1567761511081408
+          }
+        ],
+        "flags": [
+          "race:Black or African American",
+          "race:American Indian or Alaska Native",
+          "race:Native Hawaiian or Other Pacific Islander",
+          "sex:Female",
+          "age:Yes"
+        ],
+        "passes_audit": false,
+        "worst_group": "age:Yes",
+        "worst_shortfall": 0.1567761511081408,
+        "min_model_minus_observed_air": -0.17677615110814082
+      }
+    },
+    {
+      "name": "mean-logit penalty, lambda=0.03",
+      "method": "cross-entropy + lambda x squared group gaps in mean logit, among approved and among denied",
+      "params": {
+        "penalty": "mean_logit",
+        "lambda": 0.03,
+        "comparisons": [
+          [
+            "applicant_age_above_62",
+            "Yes",
+            "No"
+          ],
+          [
+            "derived_race",
+            "Black or African American",
+            "White"
+          ],
+          [
+            "derived_sex",
+            "Female",
+            "Male"
+          ]
+        ],
+        "estimator": "batch mean"
+      },
+      "epochs_run": 5,
+      "best_val_auc_sample": 0.8774882555007935,
+      "train_seconds": 75.8,
+      "calibration": {
+        "a": 1.0530524936243173,
+        "b": 0.012370619489862003
+      },
+      "weights_file": "mean-logit-penalty-lambda-0.03.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8769221703480735,
+        "ece": 0.010483991600947342,
+        "threshold": 0.12915630330068542,
+        "referral_rate": 0.3151253077848062,
+        "recall_of_denials": 0.8000002199346574,
+        "precision": 0.46105470631480217,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.7986065998548076,
+            "shortfall": 0.01727391139777812
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.1910278481483387,
+            "shortfall": -0.16551271058064132
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.7932078297287477,
+            "shortfall": 0.018151230785695804
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.8642657562901748,
+            "shortfall": -0.005267712816673598
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.9014710532560957,
+            "shortfall": -0.06189334154575965
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.9738823416343716,
+            "shortfall": -0.07092665047222402
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.9521325110530865,
+            "shortfall": -0.017341890280499372
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.7845613562575956,
+            "shortfall": 0.1289366528132473
+          }
+        ],
+        "flags": [
+          "race:Black or African American",
+          "race:American Indian or Alaska Native",
+          "age:Yes"
+        ],
+        "passes_audit": false,
+        "worst_group": "age:Yes",
+        "worst_shortfall": 0.1289366528132473,
+        "min_model_minus_observed_air": -0.1489366528132473
+      }
+    },
+    {
+      "name": "mean-logit penalty, lambda=0.1",
+      "method": "cross-entropy + lambda x squared group gaps in mean logit, among approved and among denied",
+      "params": {
+        "penalty": "mean_logit",
+        "lambda": 0.1,
+        "comparisons": [
+          [
+            "applicant_age_above_62",
+            "Yes",
+            "No"
+          ],
+          [
+            "derived_race",
+            "Black or African American",
+            "White"
+          ],
+          [
+            "derived_sex",
+            "Female",
+            "Male"
+          ]
+        ],
+        "estimator": "batch mean"
+      },
+      "epochs_run": 9,
+      "best_val_auc_sample": 0.8738682270050049,
+      "train_seconds": 136.8,
+      "calibration": {
+        "a": 1.1669364550698065,
+        "b": 0.048680799048333424
+      },
+      "weights_file": "mean-logit-penalty-lambda-0.1.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8731898004781855,
+        "ece": 0.00835041365006687,
+        "threshold": 0.13063460183110792,
+        "referral_rate": 0.32083873643914473,
+        "recall_of_denials": 0.8000002199346574,
+        "precision": 0.4528443411964484,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.8077424829183917,
+            "shortfall": 0.00813802833419408
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.1629012676733737,
+            "shortfall": -0.13738613010567624
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.794959787080435,
+            "shortfall": 0.016399273434008488
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.8594500438269408,
+            "shortfall": -0.00045200035343961886
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.8987675644567934,
+            "shortfall": -0.05918985274645738
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.9701818622325988,
+            "shortfall": -0.06722617107045126
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.9655223752531833,
+            "shortfall": -0.030731754480596174
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.8170418700027245,
+            "shortfall": 0.09645613906811834
+          }
+        ],
+        "flags": [
+          "race:Black or African American",
+          "race:American Indian or Alaska Native",
+          "age:Yes"
+        ],
+        "passes_audit": false,
+        "worst_group": "age:Yes",
+        "worst_shortfall": 0.09645613906811834,
+        "min_model_minus_observed_air": -0.11645613906811836
+      }
+    },
+    {
+      "name": "mean-logit penalty, lambda=0.3",
+      "method": "cross-entropy + lambda x squared group gaps in mean logit, among approved and among denied",
+      "params": {
+        "penalty": "mean_logit",
+        "lambda": 0.3,
+        "comparisons": [
+          [
+            "applicant_age_above_62",
+            "Yes",
+            "No"
+          ],
+          [
+            "derived_race",
+            "Black or African American",
+            "White"
+          ],
+          [
+            "derived_sex",
+            "Female",
+            "Male"
+          ]
+        ],
+        "estimator": "batch mean"
+      },
+      "epochs_run": 12,
+      "best_val_auc_sample": 0.8680869340896606,
+      "train_seconds": 194.0,
+      "calibration": {
+        "a": 1.2493920539739858,
+        "b": 0.25568768915308204
+      },
+      "weights_file": "mean-logit-penalty-lambda-0.3.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8674960608876195,
+        "ece": 0.007913310405252937,
+        "threshold": 0.12188708684512607,
+        "referral_rate": 0.3258996982515606,
+        "recall_of_denials": 0.8000002199346574,
+        "precision": 0.4458120305497696,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.8166367219249911,
+            "shortfall": -0.0007562106724053885
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.1530058617617558,
+            "shortfall": -0.12749072419405838
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.7929712936828764,
+            "shortfall": 0.018387766831567065
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.8735218308283036,
+            "shortfall": -0.01452378735480242
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.8983519853136585,
+            "shortfall": -0.058774273603322436
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.9680490125840362,
+            "shortfall": -0.06509332142188862
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.970556009496651,
+            "shortfall": -0.035765388724063873
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.8466630909954362,
+            "shortfall": 0.06683491807540665
+          }
+        ],
+        "flags": [
+          "race:American Indian or Alaska Native",
+          "age:Yes"
+        ],
+        "passes_audit": false,
+        "worst_group": "age:Yes",
+        "worst_shortfall": 0.06683491807540665,
+        "min_model_minus_observed_air": -0.08683491807540666
+      }
+    },
+    {
+      "name": "mean-logit penalty, lambda=1",
+      "method": "cross-entropy + lambda x squared group gaps in mean logit, among approved and among denied",
+      "params": {
+        "penalty": "mean_logit",
+        "lambda": 1.0,
+        "comparisons": [
+          [
+            "applicant_age_above_62",
+            "Yes",
+            "No"
+          ],
+          [
+            "derived_race",
+            "Black or African American",
+            "White"
+          ],
+          [
+            "derived_sex",
+            "Female",
+            "Male"
+          ]
+        ],
+        "estimator": "batch mean"
+      },
+      "epochs_run": 6,
+      "best_val_auc_sample": 0.8497873544692993,
+      "train_seconds": 107.4,
+      "calibration": {
+        "a": 1.598455582481792,
+        "b": 0.5375966596427945
+      },
+      "weights_file": "mean-logit-penalty-lambda-1.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8492114483058669,
+        "ece": 0.013544405221714292,
+        "threshold": 0.11109903331693731,
+        "referral_rate": 0.34095676363664684,
+        "recall_of_denials": 0.8000002199346574,
+        "precision": 0.42612442904320585,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.8213767070670664,
+            "shortfall": -0.005496195814480687
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.1333093916348254,
+            "shortfall": -0.10779425406712795
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.7987483394714371,
+            "shortfall": 0.012610721043006423
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.8803845086448742,
+            "shortfall": -0.021386465171372993
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.8978864222008991,
+            "shortfall": -0.058308710490563076
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.9882291564769331,
+            "shortfall": -0.08527346531478552
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.9824173680960827,
+            "shortfall": -0.04762674732349559
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.8470134980413142,
+            "shortfall": 0.06648451102952868
+          }
+        ],
+        "flags": [
+          "race:American Indian or Alaska Native",
+          "age:Yes"
+        ],
+        "passes_audit": false,
+        "worst_group": "age:Yes",
+        "worst_shortfall": 0.06648451102952868,
+        "min_model_minus_observed_air": -0.0864845110295287
+      }
+    },
+    {
+      "name": "referral-rate penalty, lambda=0.3",
+      "method": "cross-entropy + lambda x squared group gaps in soft referral rate at the batch's own 80%-recall threshold, among approved and among denied",
+      "params": {
+        "penalty": "referral_rate",
+        "lambda": 0.3,
+        "comparisons": [
+          [
+            "applicant_age_above_62",
+            "Yes",
+            "No"
+          ],
+          [
+            "derived_race",
+            "Black or African American",
+            "White"
+          ],
+          [
+            "derived_sex",
+            "Female",
+            "Male"
+          ],
+          [
+            "derived_race",
+            "American Indian or Alaska Native",
+            "White"
+          ]
+        ],
+        "estimator": "split halves",
+        "tau": 0.25
+      },
+      "epochs_run": 9,
+      "best_val_auc_sample": 0.8736104369163513,
+      "train_seconds": 173.6,
+      "calibration": {
+        "a": 0.9425024916336951,
+        "b": -0.09299408099305893
+      },
+      "weights_file": "referral-rate-penalty-lambda-0.3.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8725888475445549,
+        "ece": 0.014019702868458123,
+        "threshold": 0.133988369166517,
+        "referral_rate": 0.33741442988238224,
+        "recall_of_denials": 0.8000002199346574,
+        "precision": 0.43059808166393904,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.8217038037563676,
+            "shortfall": -0.005823292503781885
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.1326185300429092,
+            "shortfall": -0.10710339247521183
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.8134935716398135,
+            "shortfall": -0.0021345111253699978
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.8795238944577576,
+            "shortfall": -0.02052585098425641
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.9027245311531771,
+            "shortfall": -0.06314681944284106
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.9657523544603539,
+            "shortfall": -0.06279666329820632
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.9810628710991118,
+            "shortfall": -0.04627225032652471
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.8739175174398383,
+            "shortfall": 0.03958049163100463
+          }
+        ],
+        "flags": [
+          "age:Yes"
+        ],
+        "passes_audit": false,
+        "worst_group": "age:Yes",
+        "worst_shortfall": 0.03958049163100463,
+        "min_model_minus_observed_air": -0.05958049163100465
+      }
+    },
+    {
+      "name": "referral-rate penalty, lambda=1",
+      "method": "cross-entropy + lambda x squared group gaps in soft referral rate at the batch's own 80%-recall threshold, among approved and among denied",
+      "params": {
+        "penalty": "referral_rate",
+        "lambda": 1.0,
+        "comparisons": [
+          [
+            "applicant_age_above_62",
+            "Yes",
+            "No"
+          ],
+          [
+            "derived_race",
+            "Black or African American",
+            "White"
+          ],
+          [
+            "derived_sex",
+            "Female",
+            "Male"
+          ],
+          [
+            "derived_race",
+            "American Indian or Alaska Native",
+            "White"
+          ]
+        ],
+        "estimator": "split halves",
+        "tau": 0.25
+      },
+      "epochs_run": 6,
+      "best_val_auc_sample": 0.859175443649292,
+      "train_seconds": 111.9,
+      "calibration": {
+        "a": 0.9874641348720677,
+        "b": -0.11978103898771669
+      },
+      "weights_file": "referral-rate-penalty-lambda-1.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8585747813476817,
+        "ece": 0.014185203685053691,
+        "threshold": 0.12855722147668291,
+        "referral_rate": 0.387316260284541,
+        "recall_of_denials": 0.8000002199346574,
+        "precision": 0.3751198210122871,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.8760861013427642,
+            "shortfall": -0.06020559009017845
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.0571712888761804,
+            "shortfall": -0.03165615130848298
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.8571067064079321,
+            "shortfall": -0.045747645893488564
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.9496563153822265,
+            "shortfall": -0.09065827190872533
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.926655545114104,
+            "shortfall": -0.08707783340376796
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.974125562129593,
+            "shortfall": -0.07116987096744543
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.9838933231619327,
+            "shortfall": -0.049102702389345554
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.9441016504344086,
+            "shortfall": -0.030603641363565748
+          }
+        ],
+        "flags": [],
+        "passes_audit": true,
+        "worst_group": "age:Yes",
+        "worst_shortfall": -0.030603641363565748,
+        "min_model_minus_observed_air": 0.01060364136356573
+      }
+    },
+    {
+      "name": "referral-rate penalty, lambda=3",
+      "method": "cross-entropy + lambda x squared group gaps in soft referral rate at the batch's own 80%-recall threshold, among approved and among denied",
+      "params": {
+        "penalty": "referral_rate",
+        "lambda": 3.0,
+        "comparisons": [
+          [
+            "applicant_age_above_62",
+            "Yes",
+            "No"
+          ],
+          [
+            "derived_race",
+            "Black or African American",
+            "White"
+          ],
+          [
+            "derived_sex",
+            "Female",
+            "Male"
+          ],
+          [
+            "derived_race",
+            "American Indian or Alaska Native",
+            "White"
+          ]
+        ],
+        "estimator": "split halves",
+        "tau": 0.25
+      },
+      "epochs_run": 9,
+      "best_val_auc_sample": 0.8504933714866638,
+      "train_seconds": 167.0,
+      "calibration": {
+        "a": 1.0441734900600452,
+        "b": -0.5163323212747043
+      },
+      "weights_file": "referral-rate-penalty-lambda-3.weights.h5",
+      "valid_2024": {
+        "rows": 5007151,
+        "auc": 0.8495660735986658,
+        "ece": 0.01306484673451112,
+        "threshold": 0.1338523186632663,
+        "referral_rate": 0.40055772234550147,
+        "recall_of_denials": 0.8000002199346574,
+        "precision": 0.3627192739721178,
+        "groups": [
+          {
+            "dimension": "race",
+            "group": "Black or African American",
+            "reference": "White",
+            "n": 476372,
+            "observed_air": 0.8358805112525858,
+            "model_air": 0.8442575377738735,
+            "shortfall": -0.028377026521287707
+          },
+          {
+            "dimension": "race",
+            "group": "Asian",
+            "reference": "White",
+            "n": 337551,
+            "observed_air": 1.0455151375676974,
+            "model_air": 1.0973762374489486,
+            "shortfall": -0.07186109988125122
+          },
+          {
+            "dimension": "race",
+            "group": "American Indian or Alaska Native",
+            "reference": "White",
+            "n": 38443,
+            "observed_air": 0.8313590605144435,
+            "model_air": 0.832889899578924,
+            "shortfall": -0.0215308390644805
+          },
+          {
+            "dimension": "race",
+            "group": "Native Hawaiian or Other Pacific Islander",
+            "reference": "White",
+            "n": 10331,
+            "observed_air": 0.8789980434735012,
+            "model_air": 0.8943394297998484,
+            "shortfall": -0.0353413863263472
+          },
+          {
+            "dimension": "race",
+            "group": "2 or more minority races",
+            "reference": "White",
+            "n": 13260,
+            "observed_air": 0.859577711710336,
+            "model_air": 0.8779028086780406,
+            "shortfall": -0.038325096967704586
+          },
+          {
+            "dimension": "ethnicity",
+            "group": "Hispanic or Latino",
+            "reference": "Not Hispanic or Latino",
+            "n": 670655,
+            "observed_air": 0.9229556911621476,
+            "model_air": 0.9465272322429096,
+            "shortfall": -0.043571541080762
+          },
+          {
+            "dimension": "sex",
+            "group": "Female",
+            "reference": "Male",
+            "n": 1150963,
+            "observed_air": 0.9547906207725871,
+            "model_air": 0.9918265119532932,
+            "shortfall": -0.057035891180706066
+          },
+          {
+            "dimension": "age",
+            "group": "Yes",
+            "reference": "No",
+            "n": 717944,
+            "observed_air": 0.9334980090708429,
+            "model_air": 0.9040745289213677,
+            "shortfall": 0.009423480149475139
+          }
+        ],
+        "flags": [
+          "age:Yes"
+        ],
+        "passes_audit": false,
+        "worst_group": "age:Yes",
+        "worst_shortfall": 0.009423480149475139,
+        "min_model_minus_observed_air": -0.029423480149475156
+      }
+    }
+  ],
+  "chosen": {
+    "name": "referral-rate penalty, lambda=1",
+    "passes_2024_audit": true,
+    "rule": "highest 2024 AUC among passing variants"
+  },
+  "seconds": 1367.1,
+  "holdout_2025": {
+    "scored_at": "2026-10-18T19:54:47+00:00",
+    "variant": "referral-rate penalty, lambda=1",
+    "rows": 5444487,
+    "auc": 0.8448770072099189,
+    "auc_ci95": [
+      0.8444391984694591,
+      0.8453644041494943
+    ],
+    "ks": 0.5483056613935968,
+    "brier": 0.09129555666817109,
+    "ece": 0.014565811494842871,
+    "threshold": 0.12855722147668291,
+    "referral_rate": 0.40517352690896313,
+    "recall_of_denials": 0.7948280673467489,
+    "precision": 0.3486098128616903,
+    "groups": [
+      {
+        "dimension": "race",
+        "group": "Black or African American",
+        "reference": "White",
+        "n": 485557,
+        "observed_air": 0.8271949465928284,
+        "model_air": 0.8724950717396858,
+        "shortfall": -0.06530012514685735
+      },
+      {
+        "dimension": "race",
+        "group": "Asian",
+        "reference": "White",
+        "n": 347400,
+        "observed_air": 1.0359411782376022,
+        "model_air": 1.0022107206631254,
+        "shortfall": 0.013730457574476773
+      },
+      {
+        "dimension": "race",
+        "group": "American Indian or Alaska Native",
+        "reference": "White",
+        "n": 41996,
+        "observed_air": 0.8366905900232634,
+        "model_air": 0.8606123914610443,
+        "shortfall": -0.043921801437780905
+      },
+      {
+        "dimension": "race",
+        "group": "Native Hawaiian or Other Pacific Islander",
+        "reference": "White",
+        "n": 11057,
+        "observed_air": 0.8880899785475391,
+        "model_air": 0.9316054122614748,
+        "shortfall": -0.06351543371393564
+      },
+      {
+        "dimension": "race",
+        "group": "2 or more minority races",
+        "reference": "White",
+        "n": 14268,
+        "observed_air": 0.8699000003959163,
+        "model_air": 0.9519396718856806,
+        "shortfall": -0.10203967148976434
+      },
+      {
+        "dimension": "ethnicity",
+        "group": "Hispanic or Latino",
+        "reference": "Not Hispanic or Latino",
+        "n": 703083,
+        "observed_air": 0.9211911486257136,
+        "model_air": 0.9549807281150442,
+        "shortfall": -0.05378957948933061
+      },
+      {
+        "dimension": "sex",
+        "group": "Female",
+        "reference": "Male",
+        "n": 1214543,
+        "observed_air": 0.9587436860823288,
+        "model_air": 0.9892946470307515,
+        "shortfall": -0.05055096094842271
+      },
+      {
+        "dimension": "age",
+        "group": "Yes",
+        "reference": "No",
+        "n": 823774,
+        "observed_air": 0.9295735706395791,
+        "model_air": 0.9551996400736489,
+        "shortfall": -0.04562606943406977
+      }
+    ],
+    "flags": [
+      "race:Asian"
+    ],
+    "passes_audit": false,
+    "worst_group": "race:Asian",
+    "worst_shortfall": 0.013730457574476773,
+    "min_model_minus_observed_air": -0.03373045757447679,
+    "v1": {
+      "source": "reports/model-metrics.json and reports/fairness.json (committed, not re-scored)",
+      "auc": 0.8697675781669613,
+      "referral_rate": 0.326636467310878,
+      "groups": [
+        {
+          "dimension": "race",
+          "group": "Black or African American",
+          "reference": "White",
+          "n": 485557,
+          "observed_air": 0.8271949465928284,
+          "model_air": 0.7590161435782569,
+          "shortfall": 0.04817880301457156
+        },
+        {
+          "dimension": "race",
+          "group": "Asian",
+          "reference": "White",
+          "n": 347400,
+          "observed_air": 1.0359411782376022,
+          "model_air": 1.1927339300256443,
+          "shortfall": -0.1767927517880421
+        },
+        {
+          "dimension": "race",
+          "group": "American Indian or Alaska Native",
+          "reference": "White",
+          "n": 41996,
+          "observed_air": 0.8366905900232634,
+          "model_air": 0.7856741824282266,
+          "shortfall": 0.031016407595036766
+        },
+        {
+          "dimension": "race",
+          "group": "Native Hawaiian or Other Pacific Islander",
+          "reference": "White",
+          "n": 11057,
+          "observed_air": 0.8880899785475391,
+          "model_air": 0.8445684068268866,
+          "shortfall": 0.0235215717206525
+        },
+        {
+          "dimension": "race",
+          "group": "2 or more minority races",
+          "reference": "White",
+          "n": 14268,
+          "observed_air": 0.8699000003959163,
+          "model_air": 0.9065724099643745,
+          "shortfall": -0.056672409568458204
+        },
+        {
+          "dimension": "ethnicity",
+          "group": "Hispanic or Latino",
+          "reference": "Not Hispanic or Latino",
+          "n": 703083,
+          "observed_air": 0.9211911486257136,
+          "model_air": 0.9366750349968497,
+          "shortfall": -0.035483886371136086
+        },
+        {
+          "dimension": "sex",
+          "group": "Female",
+          "reference": "Male",
+          "n": 1214543,
+          "observed_air": 0.9587436860823288,
+          "model_air": 0.936273125494485,
+          "shortfall": 0.002470560587843784
+        },
+        {
+          "dimension": "age",
+          "group": "Yes",
+          "reference": "No",
+          "n": 823774,
+          "observed_air": 0.9295735706395791,
+          "model_air": 0.7607500203430574,
+          "shortfall": 0.14882355029652172
+        }
+      ],
+      "flags": [
+        "race:Black or African American",
+        "race:American Indian or Alaska Native",
+        "race:Native Hawaiian or Other Pacific Islander",
+        "sex:Female",
+        "age:Yes"
+      ],
+      "passes_audit": false,
+      "worst_group": "age:Yes",
+      "worst_shortfall": 0.14882355029652172,
+      "min_model_minus_observed_air": -0.16882355029652174
+    }
+  }
+}
