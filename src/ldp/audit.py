@@ -25,7 +25,7 @@ from ldp.schema import EXCLUDED_FOR_LEAKAGE, FEATURE_NAMES, LABEL, NOT_APPLICABL
 AVAILABILITY_GAP_LIMIT = 0.10
 UNIVARIATE_AUC_LIMIT = 0.80
 # Below this many rows per class the screens are noise (a 40-denial sample flags fields at random), so the
-# audit is reported as underpowered and not enforced.
+# pipeline stops; a run on fixtures or a sample can opt to go on with the audit reported as not enforced.
 MIN_ROWS_PER_CLASS = 1_000
 MISSING_CODES = frozenset({"missing", "NA", "Exempt"})
 
