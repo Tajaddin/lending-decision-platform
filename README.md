@@ -69,6 +69,10 @@ The committed model (`models/ldp/1`, 805 KB) is enough for the stack. To rebuild
 make install download pipeline train   # or: docker compose --profile jobs run --rm jobs pipeline ...
 ```
 
+After adding a model version folder (`models/ldp/<n>`) to a running stack, run `docker compose restart api
+monitor`. TF Serving loads the new version within 30 s and unloads the old one, but the API and the monitor
+keep the version they found at startup, so decisions return 503 until they restart.
+
 Tests: `make check` (unit, Spark and TensorFlow tests with coverage, shellcheck, bats) and
 `pytest -m integration` (real TF Serving, Pub/Sub and BigQuery emulators through Testcontainers).
 
