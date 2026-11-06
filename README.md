@@ -32,6 +32,8 @@ protected groups worse than the lenders already do (disparate impact).
 
 Hardware for every local timing: one desktop, Intel i5-13600KF (14 cores / 20 threads), WSL2 Ubuntu 24.04 with
 15.5 GB, data on the WSL ext4 disk. The Databricks and GCP rows ran on 2026-10-18 ([docs/DEPLOY.md](docs/DEPLOY.md)).
+The k6 numbers come from the serving code of commit 1a9527a (2026-10-18), before the API key check and body cap
+moved ahead of the body read and before the model-version pin; they have not been re-run since.
 
 ## Architecture
 
