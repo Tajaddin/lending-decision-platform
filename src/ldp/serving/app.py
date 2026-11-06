@@ -28,6 +28,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, CollectorRegistry, generate_latest, multiprocess
 from starlette.datastructures import Headers
+from starlette.routing import Match, Route
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from ldp.config import Settings
@@ -159,9 +160,17 @@ def create_app(
 
     app.add_middleware(FrontDoor, keys=keys, max_body=MAX_BODY_BYTES)
 
+    def route_template(scope: Scope) -> str:
+        """The matched route's path template: a label taken from the raw path would grow a new series for every
+        path a client makes up, without authenticating."""
+        for candidate in app.router.routes:
+            if isinstance(candidate, Route) and candidate.matches(scope)[0] != Match.NONE:
+                return candidate.path
+        return "unmatched"
+
     @app.middleware("http")  # added last, so it runs first and counts what the front door refuses
     async def observe(request: Request, call_next: Any) -> Response:
-        route = request.url.path
+        route = route_template(request.scope)
         start = time.perf_counter()
         response: Response = await call_next(request)
         if route.startswith("/v1/"):

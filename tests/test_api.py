@@ -307,6 +307,17 @@ def test_health_and_metrics(setup) -> None:
     assert "ldp_http_request_seconds_bucket" in text
 
 
+def test_metric_labels_are_route_templates_not_raw_paths(setup) -> None:
+    client, _, _ = setup
+    for i in range(100):
+        assert client.get(f"/made-up-{i}").status_code == 404
+        assert client.post(f"/v1/made-up-{i}").status_code == 401
+    lines = client.get("/metrics").text.splitlines()
+    routes = {ln.split('route="')[1].split('"')[0] for ln in lines if ln.startswith("ldp_http_requests_total{")}
+    assert "unmatched" in routes
+    assert routes <= {"/v1/decisions", "/health", "/ready", "/metrics", "unmatched"}
+
+
 def test_overload_is_shed_with_503_instead_of_queueing() -> None:
     """With max_inflight=1, a second concurrent request is refused at once with Retry-After."""
     import asyncio
