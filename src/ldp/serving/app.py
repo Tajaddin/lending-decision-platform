@@ -78,20 +78,22 @@ class FrontDoor:
             await _too_large()(scope, receive, send)
             return
         body = bytearray()
-        more = True
-        while more:
-            message = await receive()
-            if message["type"] != "http.request":  # the client went away
-                return
+        message = await receive()
+        while message["type"] == "http.request":
             body += message.get("body", b"")
             if len(body) > self.max_body:
                 await _too_large()(scope, receive, send)
                 return
-            more = message.get("more_body", False)
-        pending: list[Message] = [{"type": "http.request", "body": bytes(body), "more_body": False}]
+            if not message.get("more_body", False):
+                break
+            message = await receive()
+        complete = message["type"] == "http.request"
+        pending: list[Message] = [{"type": "http.request", "body": bytes(body), "more_body": not complete}]
+        if not complete:  # the client hung up mid-body: pass that on, so the application answers it as it always has
+            pending.append(message)
 
         async def replay() -> Message:
-            return pending.pop() if pending else await receive()
+            return pending.pop(0) if pending else await receive()
 
         await self.app(scope, replay, send)
 

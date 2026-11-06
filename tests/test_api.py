@@ -230,6 +230,52 @@ def test_a_streamed_body_under_the_cap_is_decided() -> None:
     assert _stream(body, {"content-type": "application/json", "X-API-Key": KEY}, chunk=100) == (200, len(body))
 
 
+def test_a_client_that_hangs_up_mid_body_is_answered_without_an_error() -> None:
+    """One chunk, then a disconnect: the application answers 400 as for any hang-up. A front door that returns
+    without a response makes the observe middleware raise 'No response returned.' and the server log a traceback."""
+    import asyncio
+
+    incoming = [
+        {"type": "http.request", "body": json.dumps({"applications": [APP]}).encode()[:100], "more_body": True},
+        {"type": "http.disconnect"},
+    ]
+    sent: list[dict] = []
+    scope = {
+        "type": "http",
+        "asgi": {"version": "3.0"},
+        "http_version": "1.1",
+        "method": "POST",
+        "scheme": "http",
+        "path": "/v1/decisions",
+        "raw_path": b"/v1/decisions",
+        "root_path": "",
+        "query_string": b"",
+        "headers": [(b"x-api-key", KEY.encode()), (b"content-type", b"application/json")],
+        "client": ("127.0.0.1", 50000),
+        "server": ("api", 80),
+    }
+
+    async def receive() -> dict:
+        return incoming.pop(0) if incoming else {"type": "http.disconnect"}
+
+    async def send(message: dict) -> None:
+        sent.append(message)
+
+    async def run() -> None:
+        settings = Settings(api_keys=SecretStr(f"branch-app:{KEY}"), publish_events=False)
+        app = create_app(
+            settings,
+            tfs=TFServingClient(TFS, "ldp", 3, client=httpx.AsyncClient()),
+            publisher=MemoryPublisher(),
+            metadata=META,
+        )
+        async with app.router.lifespan_context(app):
+            await app(scope, receive, send)
+
+    asyncio.run(run())
+    assert sent[0]["type"] == "http.response.start" and sent[0]["status"] == 400
+
+
 def test_batches_above_64_are_rejected(setup) -> None:
     client, _, _ = setup
     assert post(client, [APP] * 65).status_code == 422
