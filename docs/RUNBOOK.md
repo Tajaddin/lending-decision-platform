@@ -10,7 +10,8 @@ Each alert in `observability/alert_rules.yml` links to a section here.
    the gateway's model version: see *Model unavailable*.
 2. API logs (`decided`, `model_unavailable` events) show whether failures are TF Serving or the gateway.
 3. Roll back by pointing traffic at the previous Cloud Run revision. A revision pins its image and its model
-   version (`LDP_MODEL_VERSION` and TF Serving's version policy), so the pair moves together.
+   version (`LDP_MODEL_VERSION` and TF Serving's version policy), so the pair moves together. (The version pin
+   was added after the 2026-10-18 deploy and has not been applied on Cloud Run yet.)
 
 ## Latency
 

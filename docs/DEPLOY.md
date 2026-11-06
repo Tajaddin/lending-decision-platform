@@ -2,7 +2,8 @@
 
 Everything here needs accounts only the owner can create. The local stack (`make up`) needs none of it. Both
 were done this way on 2026-10-18; results and the bugs it found are in the
-[cloud retro](sprints/cloud-deploy.md).
+[cloud retro](sprints/cloud-deploy.md). The model-version pin was added after that deploy and has not been
+applied on Cloud Run yet: step 5, TF Serving's version policy and `/ready` as the API's startup probe.
 
 ## GCP (free tier)
 
@@ -39,7 +40,8 @@ were done this way on 2026-10-18; results and the bugs it found are in the
    ```
 5. A new model: upload `models/ldp/<n>` next to the old folder and apply with `-var model_version=<n>`. The
    running revision keeps serving its version; the new one takes traffic once its `/ready` sees version `<n>`
-   loaded, and moving traffic back to the previous revision restores the previous model.
+   loaded, and moving traffic back to the previous revision restores the previous model. (Added after the
+   2026-10-18 deploy; not yet applied on Cloud Run.)
 6. For keyless deploys from GitHub Actions, set repository variables `GCP_WIF_PROVIDER` and
    `GCP_DEPLOYER_SA` from `terraform output`. (Not done yet.)
 
