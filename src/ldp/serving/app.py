@@ -2,7 +2,7 @@
 
 POST /v1/decisions  (X-API-Key)  1-64 applications -> decision, calibrated probability, adverse-action reasons
 GET  /health        liveness
-GET  /ready         TF Serving has the model loaded and the metadata matches
+GET  /ready         TF Serving has the gateway's model version loaded
 GET  /metrics       Prometheus
 
 The gateway holds no TensorFlow: TF Serving computes the probability and the integrated-gradient attributions
@@ -43,11 +43,21 @@ log = get_logger(__name__)
 MAX_BODY_BYTES = 256 * 1024
 
 
-def load_metadata(models_dir: Path, model_name: str) -> dict[str, Any]:
-    versions = sorted((p for p in (models_dir / model_name).iterdir() if p.name.isdigit()), key=lambda p: int(p.name))
-    if not versions:
-        raise FileNotFoundError(f"no model versions under {models_dir / model_name}")
-    meta: dict[str, Any] = json.loads((versions[-1] / "metadata.json").read_text(encoding="utf-8"))
+def load_metadata(models_dir: Path, model_name: str, version: int | None = None) -> dict[str, Any]:
+    """The metadata of one model version folder; without a version, the highest one."""
+    base = models_dir / model_name
+    if version is None:
+        versions = sorted((p for p in base.iterdir() if p.name.isdigit()), key=lambda p: int(p.name))
+        if not versions:
+            raise FileNotFoundError(f"no model versions under {base}")
+        folder = versions[-1]
+    else:
+        folder = base / str(version)
+    meta: dict[str, Any] = json.loads((folder / "metadata.json").read_text(encoding="utf-8"))
+    # TF Serving names a version by its folder; a copied folder would make the gateway call one version and
+    # report another.
+    if str(meta["version"]) != folder.name:
+        raise ValueError(f"{folder} holds the metadata of version {meta['version']}")
     return meta
 
 
@@ -57,7 +67,7 @@ def create_app(
     publisher: Publisher | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> FastAPI:
-    meta = metadata or load_metadata(Path(settings.models_dir), settings.model_name)
+    meta = metadata or load_metadata(Path(settings.models_dir), settings.model_name, settings.model_version)
     keys = KeyStore(settings.client_keys())
     limiter = RateLimiter(settings.rate_limit_per_minute)
     threshold = float(meta["threshold"])
@@ -69,7 +79,9 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        app.state.tfs = tfs or TFServingClient(settings.tfs_url, settings.model_name, settings.tfs_timeout_s)
+        app.state.tfs = tfs or TFServingClient(
+            settings.tfs_url, settings.model_name, version, timeout_s=settings.tfs_timeout_s
+        )
         if publisher is not None:
             app.state.publisher = publisher
         elif settings.publish_events:

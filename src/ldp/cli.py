@@ -187,7 +187,7 @@ def monitor(once: bool = False, interval_s: int = 30, port: int = 9108) -> None:
     settings = get_settings()
     result = run(
         settings,
-        load_metadata(Path(settings.models_dir), settings.model_name),
+        load_metadata(Path(settings.models_dir), settings.model_name, settings.model_version),
         once=once,
         interval_s=interval_s,
         port=port,

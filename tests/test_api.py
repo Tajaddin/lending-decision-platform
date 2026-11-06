@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+from pathlib import Path
 
 import httpx
 import pytest
@@ -13,7 +14,7 @@ from pydantic import SecretStr
 
 from ldp.config import Settings
 from ldp.schema import ATTRIBUTION_GROUPS
-from ldp.serving.app import create_app
+from ldp.serving.app import create_app, load_metadata
 from ldp.serving.events import MemoryPublisher
 from ldp.serving.tfs import TFServingClient
 
@@ -21,6 +22,7 @@ TFS = "http://tfs.test"
 KEY = "test-key-branch-app-0001"
 GROUPS = [{"name": g.name, "kind": g.kind, "reason": g.reason} for g in ATTRIBUTION_GROUPS]
 META = {"version": 3, "threshold": 0.4, "attribution_groups": GROUPS}
+PREDICT = "/v1/models/ldp/versions/3:predict"
 
 APP = {
     "application_id": "A-1",
@@ -65,7 +67,7 @@ def setup():
     settings = Settings(api_keys=SecretStr(f"branch-app:{KEY}"), rate_limit_per_minute=600, publish_events=False)
     publisher = MemoryPublisher()
     with respx.mock(base_url=TFS, assert_all_called=False) as mock:
-        tfs = TFServingClient(TFS, "ldp", client=httpx.AsyncClient())
+        tfs = TFServingClient(TFS, "ldp", 3, client=httpx.AsyncClient())
         app = create_app(settings, tfs=tfs, publisher=publisher, metadata=META)
         with TestClient(app) as client:
             yield client, mock, publisher
@@ -78,7 +80,7 @@ def post(client: TestClient, apps: list[dict], key: str | None = KEY):
 
 def test_refer_with_reasons_and_event(setup) -> None:
     client, mock, publisher = setup
-    route = mock.post("/v1/models/ldp:predict").mock(return_value=httpx.Response(200, json=tfs_response([0.71])))
+    route = mock.post(PREDICT).mock(return_value=httpx.Response(200, json=tfs_response([0.71])))
     r = post(client, [{**APP, "monitoring": {"derived_race": "White", "derived_sex": "Female"}}])
     assert r.status_code == 200
     d = r.json()["decisions"][0]
@@ -98,7 +100,7 @@ def test_refer_with_reasons_and_event(setup) -> None:
 
 def test_approve_path_has_no_reasons_and_missing_numbers_go_as_nan(setup) -> None:
     client, mock, _ = setup
-    route = mock.post("/v1/models/ldp:predict").mock(return_value=httpx.Response(200, json=tfs_response([0.1, 0.2])))
+    route = mock.post(PREDICT).mock(return_value=httpx.Response(200, json=tfs_response([0.1, 0.2])))
     r = post(client, [{**APP, "income": None}, {**APP, "application_id": None}])
     assert r.status_code == 200
     decisions = r.json()["decisions"]
@@ -139,10 +141,10 @@ def test_invalid_applications_are_rejected(setup, change) -> None:
 def test_rate_limit_returns_429_with_retry_after() -> None:
     settings = Settings(api_keys=SecretStr(f"branch-app:{KEY}"), rate_limit_per_minute=2, publish_events=False)
     with respx.mock(base_url=TFS) as mock:
-        mock.post("/v1/models/ldp:predict").mock(return_value=httpx.Response(200, json=tfs_response([0.1])))
+        mock.post(PREDICT).mock(return_value=httpx.Response(200, json=tfs_response([0.1])))
         app = create_app(
             settings,
-            tfs=TFServingClient(TFS, "ldp", client=httpx.AsyncClient()),
+            tfs=TFServingClient(TFS, "ldp", 3, client=httpx.AsyncClient()),
             publisher=MemoryPublisher(),
             metadata=META,
         )
@@ -156,9 +158,9 @@ def test_rate_limit_returns_429_with_retry_after() -> None:
 
 def test_model_errors_become_503(setup) -> None:
     client, mock, publisher = setup
-    mock.post("/v1/models/ldp:predict").mock(return_value=httpx.Response(500, text="boom"))
+    mock.post(PREDICT).mock(return_value=httpx.Response(500, text="boom"))
     assert post(client, [APP]).status_code == 503
-    mock.post("/v1/models/ldp:predict").mock(side_effect=httpx.ConnectError("down"))
+    mock.post(PREDICT).mock(side_effect=httpx.ConnectError("down"))
     assert post(client, [APP]).status_code == 503
     assert publisher.events == []
 
@@ -176,24 +178,71 @@ def test_batches_above_64_are_rejected(setup) -> None:
     assert post(client, [APP] * 65).status_code == 422
 
 
-def test_ready_reflects_the_served_version(setup) -> None:
+def test_ready_reports_whether_the_pinned_version_is_loaded(setup) -> None:
     client, mock, _ = setup
-    mock.get("/v1/models/ldp").mock(
+    status = "/v1/models/ldp/versions/3"
+    mock.get(status).mock(
         return_value=httpx.Response(200, json={"model_version_status": [{"version": "3", "state": "AVAILABLE"}]})
     )
     assert client.get("/ready").json() == {"ready": True, "model_version_expected": "3", "model_version_served": "3"}
-    mock.get("/v1/models/ldp").mock(
-        return_value=httpx.Response(200, json={"model_version_status": [{"version": "2", "state": "AVAILABLE"}]})
+    mock.get(status).mock(
+        return_value=httpx.Response(200, json={"model_version_status": [{"version": "3", "state": "LOADING"}]})
     )
     r = client.get("/ready")
-    assert r.status_code == 503 and r.json()["model_version_served"] == "2"
-    mock.get("/v1/models/ldp").mock(side_effect=httpx.ConnectError("down"))
+    assert r.status_code == 503 and r.json()["model_version_served"] is None
+    # TF Serving loaded another version (a newer upload) and unloaded this one.
+    mock.get(status).mock(return_value=httpx.Response(404, json={"error": "Servable not found for request"}))
     assert client.get("/ready").status_code == 503
+    mock.get(status).mock(side_effect=httpx.ConnectError("down"))
+    assert client.get("/ready").status_code == 503
+
+
+def _model_folder(models: Path, version: int, threshold: float, recorded: int | None = None) -> None:
+    folder = models / "ldp" / str(version)
+    folder.mkdir(parents=True)
+    meta = {**META, "version": recorded or version, "threshold": threshold}
+    (folder / "metadata.json").write_text(json.dumps(meta), encoding="utf-8")
+
+
+def test_metadata_comes_from_the_pinned_version_or_the_highest(tmp_path: Path) -> None:
+    _model_folder(tmp_path, 1, threshold=0.4)
+    _model_folder(tmp_path, 2, threshold=0.9)
+    _model_folder(tmp_path, 4, threshold=0.5, recorded=2)  # version 2 copied without re-export
+    assert load_metadata(tmp_path, "ldp", 1)["threshold"] == 0.4
+    with pytest.raises(ValueError, match="version 2"):
+        load_metadata(tmp_path, "ldp")
+    with pytest.raises(FileNotFoundError):
+        load_metadata(tmp_path, "ldp", 3)
+
+
+def test_a_new_upload_does_not_change_what_a_pinned_gateway_serves(tmp_path: Path) -> None:
+    """Version 2 lands next to version 1: the gateway pinned to 1 keeps asking TF Serving for version 1 and keeps
+    applying and recording version 1's threshold."""
+    _model_folder(tmp_path, 1, threshold=0.4)
+    _model_folder(tmp_path, 2, threshold=0.9)
+    settings = Settings(
+        api_keys=SecretStr(f"branch-app:{KEY}"),
+        publish_events=False,
+        tfs_url=TFS,
+        models_dir=tmp_path,
+        model_version=1,
+    )
+    publisher = MemoryPublisher()
+    with respx.mock(base_url=TFS) as mock:
+        route = mock.post("/v1/models/ldp/versions/1:predict").mock(
+            return_value=httpx.Response(200, json=tfs_response([0.5]))
+        )
+        with TestClient(create_app(settings, publisher=publisher)) as client:
+            r = post(client, [APP])
+    assert r.status_code == 200 and route.call_count == 1
+    decision = r.json()["decisions"][0]
+    assert decision["model_version"] == "1" and decision["threshold"] == 0.4 and decision["decision"] == "refer"
+    assert publisher.events[0]["model_version"] == "1"
 
 
 def test_health_and_metrics(setup) -> None:
     client, mock, _ = setup
-    mock.post("/v1/models/ldp:predict").mock(return_value=httpx.Response(200, json=tfs_response([0.9])))
+    mock.post(PREDICT).mock(return_value=httpx.Response(200, json=tfs_response([0.9])))
     post(client, [APP])
     assert client.get("/health").json() == {"status": "ok"}
     text = client.get("/metrics").text
@@ -213,10 +262,10 @@ def test_overload_is_shed_with_503_instead_of_queueing() -> None:
 
     async def run() -> list[httpx.Response]:
         with respx.mock(base_url=TFS, assert_all_called=False) as mock:
-            mock.post("/v1/models/ldp:predict").mock(side_effect=slow)
+            mock.post(PREDICT).mock(side_effect=slow)
             app = create_app(
                 settings,
-                tfs=TFServingClient(TFS, "ldp", client=httpx.AsyncClient()),
+                tfs=TFServingClient(TFS, "ldp", 3, client=httpx.AsyncClient()),
                 publisher=MemoryPublisher(),
                 metadata=META,
             )

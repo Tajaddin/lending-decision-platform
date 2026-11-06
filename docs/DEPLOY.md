@@ -37,7 +37,10 @@ were done this way on 2026-10-18; results and the bugs it found are in the
    python scripts/cloud_smoke.py "$(terraform -chdir=infra/terraform output -raw api_url)" \
      --key-file ~/.config/ldp/api-keys --project <project>
    ```
-5. For keyless deploys from GitHub Actions, set repository variables `GCP_WIF_PROVIDER` and
+5. A new model: upload `models/ldp/<n>` next to the old folder and apply with `-var model_version=<n>`. The
+   running revision keeps serving its version; the new one takes traffic once its `/ready` sees version `<n>`
+   loaded, and moving traffic back to the previous revision restores the previous model.
+6. For keyless deploys from GitHub Actions, set repository variables `GCP_WIF_PROVIDER` and
    `GCP_DEPLOYER_SA` from `terraform output`. (Not done yet.)
 
 ## Databricks Free Edition
