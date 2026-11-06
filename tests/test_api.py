@@ -173,7 +173,7 @@ def test_oversized_bodies_are_refused(setup) -> None:
     assert r.status_code == 413
 
 
-def _stream(body: bytes, headers: dict[str, str], chunk: int) -> tuple[int, int]:
+def _stream(body: bytes, headers: dict[str, str], chunk: int, path: str = "/v1/decisions") -> tuple[int, int]:
     """POST `body` in chunks with no Content-Length (chunked transfer); return the status and how many body bytes
     the application pulled from the connection."""
     import asyncio
@@ -208,7 +208,7 @@ def _stream(body: bytes, headers: dict[str, str], chunk: int) -> tuple[int, int]
             async with app.router.lifespan_context(app):
                 transport = httpx.ASGITransport(app=counting)
                 async with httpx.AsyncClient(transport=transport, base_url="http://api") as client:
-                    r = await client.post("/v1/decisions", content=chunks(), headers=headers)
+                    r = await client.post(path, content=chunks(), headers=headers)
         assert "content-length" not in r.request.headers
         return r.status_code
 
@@ -223,6 +223,12 @@ def test_streamed_bodies_are_capped_and_never_read_without_a_key() -> None:
     assert _stream(big, json_type, chunk=65536) == (401, 0)
     status, read = _stream(big, {**json_type, "X-API-Key": KEY}, chunk=65536)
     assert status == 413 and read <= MAX_BODY_BYTES + 65536
+
+
+def test_bodies_outside_v1_are_never_read() -> None:
+    """No route outside /v1/ reads a body, so none is buffered or capped there: the router refuses the method."""
+    big = b"x" * (2 * MAX_BODY_BYTES)
+    assert _stream(big, {"content-type": "application/json"}, chunk=65536, path="/health") == (405, 0)
 
 
 def test_a_streamed_body_under_the_cap_is_decided() -> None:

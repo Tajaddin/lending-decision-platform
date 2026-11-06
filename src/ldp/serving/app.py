@@ -51,11 +51,12 @@ def _too_large() -> JSONResponse:
 
 
 class FrontDoor:
-    """Checks the API key of /v1/ calls and caps the body before the application reads any of it.
+    """Checks the API key of /v1/ calls and caps their body before the application reads any of it.
 
     FastAPI reads and parses a body before it resolves dependencies, so a key check there comes after a request of
     any size has been read; and a Content-Length check alone lets a chunked body through. Here the key is checked
-    first, the body is counted as it arrives, and reading stops at the cap.
+    first, the body is counted as it arrives, and reading stops at the cap. Other paths pass through untouched: no
+    route outside /v1/ reads a body.
     """
 
     def __init__(self, app: ASGIApp, keys: KeyStore, max_body: int) -> None:
@@ -64,11 +65,11 @@ class FrontDoor:
         self.max_body = max_body
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] != "http":
+        if scope["type"] != "http" or not scope["path"].startswith("/v1/"):
             await self.app(scope, receive, send)
             return
         headers = Headers(scope=scope)
-        if scope["path"].startswith("/v1/") and self.keys.client_for(headers.get("x-api-key")) is None:
+        if self.keys.client_for(headers.get("x-api-key")) is None:
             unauthorized = JSONResponse(
                 {"detail": "missing or invalid API key"}, status_code=401, headers={"WWW-Authenticate": "ApiKey"}
             )
