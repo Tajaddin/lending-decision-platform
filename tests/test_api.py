@@ -14,7 +14,7 @@ from pydantic import SecretStr
 
 from ldp.config import Settings
 from ldp.schema import ATTRIBUTION_GROUPS
-from ldp.serving.app import create_app, load_metadata
+from ldp.serving.app import MAX_BODY_BYTES, create_app, load_metadata
 from ldp.serving.events import MemoryPublisher
 from ldp.serving.tfs import TFServingClient
 
@@ -171,6 +171,63 @@ def test_oversized_bodies_are_refused(setup) -> None:
         "/v1/decisions", content=b"x" * (300 * 1024), headers={"X-API-Key": KEY, "content-type": "application/json"}
     )
     assert r.status_code == 413
+
+
+def _stream(body: bytes, headers: dict[str, str], chunk: int) -> tuple[int, int]:
+    """POST `body` in chunks with no Content-Length (chunked transfer); return the status and how many body bytes
+    the application pulled from the connection."""
+    import asyncio
+
+    read = 0
+
+    async def run() -> int:
+        nonlocal read
+        settings = Settings(api_keys=SecretStr(f"branch-app:{KEY}"), publish_events=False)
+        with respx.mock(base_url=TFS, assert_all_called=False) as mock:
+            mock.post(PREDICT).mock(return_value=httpx.Response(200, json=tfs_response([0.1])))
+            app = create_app(
+                settings,
+                tfs=TFServingClient(TFS, "ldp", 3, client=httpx.AsyncClient()),
+                publisher=MemoryPublisher(),
+                metadata=META,
+            )
+
+            async def counting(scope, receive, send):
+                async def counted():
+                    nonlocal read
+                    message = await receive()
+                    read += len(message.get("body", b""))
+                    return message
+
+                await app(scope, counted, send)
+
+            async def chunks():
+                for i in range(0, len(body), chunk):
+                    yield body[i : i + chunk]
+
+            async with app.router.lifespan_context(app):
+                transport = httpx.ASGITransport(app=counting)
+                async with httpx.AsyncClient(transport=transport, base_url="http://api") as client:
+                    r = await client.post("/v1/decisions", content=chunks(), headers=headers)
+        assert "content-length" not in r.request.headers
+        return r.status_code
+
+    status = asyncio.run(run())
+    return status, read
+
+
+def test_streamed_bodies_are_capped_and_never_read_without_a_key() -> None:
+    big = json.dumps({"applications": [APP] * 3000}).encode()
+    assert len(big) > 4 * MAX_BODY_BYTES
+    json_type = {"content-type": "application/json"}
+    assert _stream(big, json_type, chunk=65536) == (401, 0)
+    status, read = _stream(big, {**json_type, "X-API-Key": KEY}, chunk=65536)
+    assert status == 413 and read <= MAX_BODY_BYTES + 65536
+
+
+def test_a_streamed_body_under_the_cap_is_decided() -> None:
+    body = json.dumps({"applications": [APP]}).encode()
+    assert _stream(body, {"content-type": "application/json", "X-API-Key": KEY}, chunk=100) == (200, len(body))
 
 
 def test_batches_above_64_are_rejected(setup) -> None:

@@ -27,6 +27,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, CollectorRegistry, generate_latest, multiprocess
+from starlette.datastructures import Headers
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from ldp.config import Settings
 from ldp.log import get_logger
@@ -41,6 +43,56 @@ from ldp.serving.tfs import ModelUnavailableError, TFServingClient
 log = get_logger(__name__)
 
 MAX_BODY_BYTES = 256 * 1024
+
+
+def _too_large() -> JSONResponse:
+    return JSONResponse({"detail": "request body too large"}, status_code=413)
+
+
+class FrontDoor:
+    """Checks the API key of /v1/ calls and caps the body before the application reads any of it.
+
+    FastAPI reads and parses a body before it resolves dependencies, so a key check there comes after a request of
+    any size has been read; and a Content-Length check alone lets a chunked body through. Here the key is checked
+    first, the body is counted as it arrives, and reading stops at the cap.
+    """
+
+    def __init__(self, app: ASGIApp, keys: KeyStore, max_body: int) -> None:
+        self.app = app
+        self.keys = keys
+        self.max_body = max_body
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        headers = Headers(scope=scope)
+        if scope["path"].startswith("/v1/") and self.keys.client_for(headers.get("x-api-key")) is None:
+            unauthorized = JSONResponse(
+                {"detail": "missing or invalid API key"}, status_code=401, headers={"WWW-Authenticate": "ApiKey"}
+            )
+            await unauthorized(scope, receive, send)
+            return
+        if int(headers.get("content-length") or 0) > self.max_body:
+            await _too_large()(scope, receive, send)
+            return
+        body = bytearray()
+        more = True
+        while more:
+            message = await receive()
+            if message["type"] != "http.request":  # the client went away
+                return
+            body += message.get("body", b"")
+            if len(body) > self.max_body:
+                await _too_large()(scope, receive, send)
+                return
+            more = message.get("more_body", False)
+        pending: list[Message] = [{"type": "http.request", "body": bytes(body), "more_body": False}]
+
+        async def replay() -> Message:
+            return pending.pop() if pending else await receive()
+
+        await self.app(scope, replay, send)
 
 
 def load_metadata(models_dir: Path, model_name: str, version: int | None = None) -> dict[str, Any]:
@@ -105,12 +157,11 @@ def create_app(
         ]
         return JSONResponse({"detail": errors}, status_code=422)
 
-    @app.middleware("http")
+    app.add_middleware(FrontDoor, keys=keys, max_body=MAX_BODY_BYTES)
+
+    @app.middleware("http")  # added last, so it runs first and counts what the front door refuses
     async def observe(request: Request, call_next: Any) -> Response:
         route = request.url.path
-        if int(request.headers.get("content-length") or 0) > MAX_BODY_BYTES:
-            REQUESTS.labels(route=route, status="413").inc()
-            return JSONResponse({"detail": "request body too large"}, status_code=413)
         start = time.perf_counter()
         response: Response = await call_next(request)
         if route.startswith("/v1/"):
