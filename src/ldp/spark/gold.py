@@ -76,10 +76,17 @@ def gold_columns() -> list[str]:
 
 
 def write_gold(spark: SparkSession, silver_path: str, gold_path: str, years: list[int]) -> dict[int, dict[str, float]]:
+    """Rebuild gold for `years`; other years keep what earlier runs wrote, as in bronze and silver."""
     silver = lake.read(spark, silver_path).where(F.col("activity_year").isin(*years))
-    lake.write(population(silver).select(*gold_columns()), gold_path, partition_by="activity_year")
+    lake.write(
+        population(silver).select(*gold_columns()),
+        gold_path,
+        replace_where=f"activity_year IN ({', '.join(str(int(y)) for y in years)})",
+        partition_by="activity_year",
+    )
     stats = (
         lake.read(spark, gold_path)
+        .where(F.col("activity_year").isin(*years))
         .groupBy("activity_year")
         .agg(F.count(F.lit(1)).alias("rows"), F.avg(LABEL).alias("denial_rate"))
         .collect()

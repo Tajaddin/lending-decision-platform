@@ -94,7 +94,7 @@ def test_tfserving_matches_the_savedmodel_and_accepts_nan(tfserving: str) -> Non
     rows[1]["property_value"] = float("nan")
 
     async def call():
-        client = TFServingClient(tfserving, "ldp")
+        client = TFServingClient(tfserving, "ldp", 1)
         try:
             return await client.explain(rows)
         finally:

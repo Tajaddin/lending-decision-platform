@@ -1,5 +1,14 @@
 # Cloud Run: the API container with TF Serving as a sidecar in the same instance (localhost:8501),
 # the model mounted read-only from Cloud Storage. Scales to zero, so idle cost is nil.
+#
+# A revision serves one model version (var.model_version). TF Serving's default policy loads the highest version
+# folder it finds and hot-loads new ones, so uploading models/ldp/<n+1> would change the model under a running
+# gateway. A version policy pins TF Serving instead; a new model rolls out as a new revision, which takes traffic
+# only once its /ready sees that version loaded, and rolling back to the previous revision restores the pair.
+
+locals {
+  tfserving_config = "model_config_list { config { name: 'ldp' base_path: '/models/ldp' model_platform: 'tensorflow' model_version_policy { specific { versions: ${var.model_version} } } } }"
+}
 
 resource "google_cloud_run_v2_service" "api" {
   name                = "${local.name}-api"
@@ -52,6 +61,10 @@ resource "google_cloud_run_v2_service" "api" {
         value = "/models"
       }
       env {
+        name  = "LDP_MODEL_VERSION"
+        value = var.model_version
+      }
+      env {
         name = "LDP_API_KEYS"
         value_source {
           secret_key_ref {
@@ -66,7 +79,7 @@ resource "google_cloud_run_v2_service" "api" {
       }
       startup_probe {
         http_get {
-          path = "/health"
+          path = "/ready"
         }
         period_seconds    = 2
         failure_threshold = 15
@@ -80,9 +93,14 @@ resource "google_cloud_run_v2_service" "api" {
     }
 
     containers {
-      name  = "tfserving"
-      image = var.tfserving_image
-      args  = ["--model_name=ldp", "--model_base_path=/models/ldp", "--rest_api_port=8501", "--port=8500"]
+      name    = "tfserving"
+      image   = var.tfserving_image
+      command = ["/bin/sh", "-c"]
+      args = [
+        "printf '%s' \"$1\" > /tmp/models.config && exec tensorflow_model_server --model_config_file=/tmp/models.config --rest_api_port=8501 --port=8500",
+        "tfserving",
+        local.tfserving_config,
+      ]
       resources {
         limits = {
           cpu    = "1"
@@ -145,6 +163,10 @@ resource "google_cloud_run_v2_job" "monitor" {
         env {
           name  = "LDP_MODELS_DIR"
           value = "/models"
+        }
+        env {
+          name  = "LDP_MODEL_VERSION"
+          value = var.model_version
         }
         volume_mounts {
           name       = "models"

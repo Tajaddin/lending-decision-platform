@@ -21,7 +21,9 @@ Every pipeline run screens each candidate field on a sample of about 600,000 app
    and scored on the other). Flag above 0.80.
 
 A flagged field that is also a model input stops the pipeline (`LeakageError`) before the training export.
-Below 1,000 rows per class the screens are noise, so the report says `enforced: false` instead.
+Below 1,000 rows per class the screens are noise, so the pipeline stops too, as it does when the training year has
+no rows in gold. A run on fixtures or a sample passes `--allow-underpowered-audit` and the report says
+`enforced: false`.
 
 ## Result on 2023 (committed in `reports/leakage-audit.json`)
 

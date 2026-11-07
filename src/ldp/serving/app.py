@@ -2,7 +2,7 @@
 
 POST /v1/decisions  (X-API-Key)  1-64 applications -> decision, calibrated probability, adverse-action reasons
 GET  /health        liveness
-GET  /ready         TF Serving has the model loaded and the metadata matches
+GET  /ready         TF Serving has the gateway's model version loaded
 GET  /metrics       Prometheus
 
 The gateway holds no TensorFlow: TF Serving computes the probability and the integrated-gradient attributions
@@ -27,6 +27,9 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, CollectorRegistry, generate_latest, multiprocess
+from starlette.datastructures import Headers
+from starlette.routing import Match, Route
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from ldp.config import Settings
 from ldp.log import get_logger
@@ -43,11 +46,74 @@ log = get_logger(__name__)
 MAX_BODY_BYTES = 256 * 1024
 
 
-def load_metadata(models_dir: Path, model_name: str) -> dict[str, Any]:
-    versions = sorted((p for p in (models_dir / model_name).iterdir() if p.name.isdigit()), key=lambda p: int(p.name))
-    if not versions:
-        raise FileNotFoundError(f"no model versions under {models_dir / model_name}")
-    meta: dict[str, Any] = json.loads((versions[-1] / "metadata.json").read_text(encoding="utf-8"))
+def _too_large() -> JSONResponse:
+    return JSONResponse({"detail": "request body too large"}, status_code=413)
+
+
+class FrontDoor:
+    """Checks the API key of /v1/ calls and caps their body before the application reads any of it.
+
+    FastAPI reads and parses a body before it resolves dependencies, so a key check there comes after a request of
+    any size has been read; and a Content-Length check alone lets a chunked body through. Here the key is checked
+    first, the body is counted as it arrives, and reading stops at the cap. Other paths pass through untouched: no
+    route outside /v1/ reads a body.
+    """
+
+    def __init__(self, app: ASGIApp, keys: KeyStore, max_body: int) -> None:
+        self.app = app
+        self.keys = keys
+        self.max_body = max_body
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or not scope["path"].startswith("/v1/"):
+            await self.app(scope, receive, send)
+            return
+        headers = Headers(scope=scope)
+        if self.keys.client_for(headers.get("x-api-key")) is None:
+            unauthorized = JSONResponse(
+                {"detail": "missing or invalid API key"}, status_code=401, headers={"WWW-Authenticate": "ApiKey"}
+            )
+            await unauthorized(scope, receive, send)
+            return
+        if int(headers.get("content-length") or 0) > self.max_body:
+            await _too_large()(scope, receive, send)
+            return
+        body = bytearray()
+        message = await receive()
+        while message["type"] == "http.request":
+            body += message.get("body", b"")
+            if len(body) > self.max_body:
+                await _too_large()(scope, receive, send)
+                return
+            if not message.get("more_body", False):
+                break
+            message = await receive()
+        complete = message["type"] == "http.request"
+        pending: list[Message] = [{"type": "http.request", "body": bytes(body), "more_body": not complete}]
+        if not complete:  # the client hung up mid-body: pass that on, so the application answers it as it always has
+            pending.append(message)
+
+        async def replay() -> Message:
+            return pending.pop(0) if pending else await receive()
+
+        await self.app(scope, replay, send)
+
+
+def load_metadata(models_dir: Path, model_name: str, version: int | None = None) -> dict[str, Any]:
+    """The metadata of one model version folder; without a version, the highest one."""
+    base = models_dir / model_name
+    if version is None:
+        versions = sorted((p for p in base.iterdir() if p.name.isdigit()), key=lambda p: int(p.name))
+        if not versions:
+            raise FileNotFoundError(f"no model versions under {base}")
+        folder = versions[-1]
+    else:
+        folder = base / str(version)
+    meta: dict[str, Any] = json.loads((folder / "metadata.json").read_text(encoding="utf-8"))
+    # TF Serving names a version by its folder; a copied folder would make the gateway call one version and
+    # report another.
+    if str(meta["version"]) != folder.name:
+        raise ValueError(f"{folder} holds the metadata of version {meta['version']}")
     return meta
 
 
@@ -57,7 +123,7 @@ def create_app(
     publisher: Publisher | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> FastAPI:
-    meta = metadata or load_metadata(Path(settings.models_dir), settings.model_name)
+    meta = metadata or load_metadata(Path(settings.models_dir), settings.model_name, settings.model_version)
     keys = KeyStore(settings.client_keys())
     limiter = RateLimiter(settings.rate_limit_per_minute)
     threshold = float(meta["threshold"])
@@ -69,7 +135,9 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        app.state.tfs = tfs or TFServingClient(settings.tfs_url, settings.model_name, settings.tfs_timeout_s)
+        app.state.tfs = tfs or TFServingClient(
+            settings.tfs_url, settings.model_name, version, timeout_s=settings.tfs_timeout_s
+        )
         if publisher is not None:
             app.state.publisher = publisher
         elif settings.publish_events:
@@ -93,12 +161,19 @@ def create_app(
         ]
         return JSONResponse({"detail": errors}, status_code=422)
 
-    @app.middleware("http")
+    app.add_middleware(FrontDoor, keys=keys, max_body=MAX_BODY_BYTES)
+
+    def route_template(scope: Scope) -> str:
+        """The matched route's path template: a label taken from the raw path would grow a new series for every
+        path a client makes up, without authenticating."""
+        for candidate in app.router.routes:
+            if isinstance(candidate, Route) and candidate.matches(scope)[0] != Match.NONE:
+                return candidate.path
+        return "unmatched"
+
+    @app.middleware("http")  # added last, so it runs first and counts what the front door refuses
     async def observe(request: Request, call_next: Any) -> Response:
-        route = request.url.path
-        if int(request.headers.get("content-length") or 0) > MAX_BODY_BYTES:
-            REQUESTS.labels(route=route, status="413").inc()
-            return JSONResponse({"detail": "request body too large"}, status_code=413)
+        route = route_template(request.scope)
         start = time.perf_counter()
         response: Response = await call_next(request)
         if route.startswith("/v1/"):

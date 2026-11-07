@@ -23,7 +23,9 @@ def test_pipeline_end_to_end(spark, fixture_csv, tmp_path: Path) -> None:
     settings = Settings(
         lake_root=str(tmp_path / "lake"), training_dir=tmp_path / "training", reports_dir=tmp_path / "reports"
     )
-    result = run_pipeline(settings, [2023, 2024, 2025], raw, master="local[2]", audit_sample_rows=100_000)
+    result = run_pipeline(
+        settings, [2023, 2024, 2025], raw, master="local[2]", audit_sample_rows=100_000, allow_underpowered_audit=True
+    )
 
     assert set(result["timings_s"]) >= {"bronze_2023", "silver_2025", "quality", "gold", "leakage_audit", "export"}
     assert result["bronze"] == result["silver"]
@@ -53,3 +55,35 @@ def test_pipeline_end_to_end(spark, fixture_csv, tmp_path: Path) -> None:
     assert scored.count() == dataset["splits"][2]["rows"]
     card = render(tmp_path / "reports", model_dir)
     assert "## Fair-lending audit" in card and "TensorFlow MLP (this model)" in card
+
+
+def _audit_only(spark, tmp_path: Path, years: list[int], **options: bool) -> dict:
+    """Run only the audit stage on a gold table holding a few rows per given year."""
+    from ldp.pipeline import run_pipeline
+
+    settings = Settings(lake_root=str(tmp_path / "lake"), reports_dir=tmp_path / "reports")
+    rows = [(year, i % 2, float(i)) for year in years for i in range(20)]
+    gold = spark.createDataFrame(rows, "activity_year int, denied int, income double")
+    gold.write.format("delta").partitionBy("activity_year").save(settings.lake("gold"))
+    return run_pipeline(settings, [2025], tmp_path, master="local[2]", stages=("audit",), **options)
+
+
+def test_the_audit_stops_on_an_empty_training_year(spark, tmp_path: Path) -> None:
+    """Even a run that allows an underpowered audit stops when there is nothing to screen."""
+    from ldp.audit import LeakageError
+
+    for run, options in (("strict", {}), ("fixture", {"allow_underpowered_audit": True})):
+        with pytest.raises(LeakageError, match="no 2023 rows"):
+            _audit_only(spark, tmp_path / run, [2024, 2025], **options)
+        assert not (tmp_path / run / "reports" / "leakage-audit.json").exists()
+
+
+def test_an_underpowered_audit_stops_the_run_unless_allowed(spark, tmp_path: Path) -> None:
+    from ldp.audit import LeakageError
+
+    with pytest.raises(LeakageError, match="cannot power"):
+        _audit_only(spark, tmp_path / "strict", [2023, 2025])
+    assert not (tmp_path / "strict" / "reports" / "leakage-audit.json").exists()
+    result = _audit_only(spark, tmp_path / "fixture", [2023, 2025], allow_underpowered_audit=True)
+    audit = json.loads((tmp_path / "fixture" / "reports" / "leakage-audit.json").read_text())
+    assert result["leakage_audit_enforced"] is False and audit["enforced"] is False and audit["rows"] == 20

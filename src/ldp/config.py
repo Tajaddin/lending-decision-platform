@@ -31,6 +31,7 @@ class Settings(BaseSettings):
 
     # Serving
     model_name: str = "ldp"
+    model_version: int | None = None  # the version folder to serve; unset takes the highest one (local stack)
     tfs_url: str = "http://localhost:8501"
     tfs_timeout_s: float = 2.0
     api_keys: SecretStr = Field(default=SecretStr(""), description="comma-separated client:key pairs")
