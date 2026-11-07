@@ -44,13 +44,23 @@ def pipeline(
     raw_dir: Annotated[Path, typer.Option(help="folder with <year>_public_lar_csv.csv files")] = Path("data/raw"),
     master: Annotated[str | None, typer.Option(help="Spark master, e.g. local[8]")] = None,
     stages: Annotated[str, typer.Option(help="comma-separated subset of bronze,silver,quality,gold,audit,export")] = "",
+    allow_underpowered_audit: Annotated[
+        bool, typer.Option(help="fixtures or samples: report the leakage audit as not enforced instead of stopping")
+    ] = False,
 ) -> None:
     """bronze -> silver -> quality -> gold -> leakage audit -> training export."""
     from ldp.pipeline import ALL_STAGES, host_info, run_pipeline, write_json
 
     settings = get_settings()
     chosen = tuple(s.strip() for s in stages.split(",") if s.strip()) or ALL_STAGES
-    result = run_pipeline(settings, _years(years), raw_dir, master=master, stages=chosen)
+    result = run_pipeline(
+        settings,
+        _years(years),
+        raw_dir,
+        master=master,
+        stages=chosen,
+        allow_underpowered_audit=allow_underpowered_audit,
+    )
     name = "pipeline-run.json" if chosen == ALL_STAGES else f"pipeline-run-{'-'.join(chosen)}.json"
     write_json({"host": host_info(), "stages": list(chosen), **result}, settings.reports_dir / name)
     typer.echo(f"done: {result['timings_s']}")
@@ -187,7 +197,7 @@ def monitor(once: bool = False, interval_s: int = 30, port: int = 9108) -> None:
     settings = get_settings()
     result = run(
         settings,
-        load_metadata(Path(settings.models_dir), settings.model_name),
+        load_metadata(Path(settings.models_dir), settings.model_name, settings.model_version),
         once=once,
         interval_s=interval_s,
         port=port,

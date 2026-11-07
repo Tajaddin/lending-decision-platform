@@ -33,6 +33,8 @@ protected groups worse than the lenders already do (disparate impact).
 
 Hardware for every local timing: one desktop, Intel i5-13600KF (14 cores / 20 threads), WSL2 Ubuntu 24.04 with
 15.5 GB, data on the WSL ext4 disk. The Databricks and GCP rows ran on 2026-10-18 ([docs/DEPLOY.md](docs/DEPLOY.md)).
+The k6 numbers come from the serving code of commit 1a9527a (2026-10-18), before the API key check and body cap
+moved ahead of the body read and before the model-version pin; they have not been re-run since.
 
 ## Architecture
 
@@ -69,6 +71,10 @@ The committed model (`models/ldp/1`, 805 KB) is enough for the stack. To rebuild
 ```bash
 make install download pipeline train   # or: docker compose --profile jobs run --rm jobs pipeline ...
 ```
+
+After adding a model version folder (`models/ldp/<n>`) to a running stack, run `docker compose restart api
+monitor`. TF Serving loads the new version within 30 s and unloads the old one, but the API and the monitor
+keep the version they found at startup, so decisions return 503 until they restart.
 
 Tests: `make check` (unit, Spark and TensorFlow tests with coverage, shellcheck, bats) and
 `pytest -m integration` (real TF Serving, Pub/Sub and BigQuery emulators through Testcontainers).

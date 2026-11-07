@@ -21,6 +21,16 @@ variable "image_tag" {
   default     = "latest"
 }
 
+variable "model_version" {
+  description = "Model version folder under gs://<bucket>/ldp/ that this revision serves (gateway and TF Serving)"
+  type        = number
+  default     = 1
+  validation {
+    condition     = var.model_version >= 1 && floor(var.model_version) == var.model_version
+    error_message = "model_version is a version folder name: a positive integer."
+  }
+}
+
 variable "tfserving_image" {
   description = "TF Serving image (mirrored to Artifact Registry by CI to avoid Docker Hub pulls)"
   type        = string

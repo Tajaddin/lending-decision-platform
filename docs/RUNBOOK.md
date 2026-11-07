@@ -6,11 +6,12 @@ Each alert in `observability/alert_rules.yml` links to a section here.
 
 `LdpHighErrorRate`: more than 2% of `/v1/decisions` calls return 5xx for 5 minutes.
 
-1. `GET /ready` on the API. `model_version_served: null` means TF Serving is down or still loading: see *Model
-   unavailable*.
+1. `GET /ready` on the API. `model_version_served: null` means TF Serving is down, still loading, or does not have
+   the gateway's model version: see *Model unavailable*.
 2. API logs (`decided`, `model_unavailable` events) show whether failures are TF Serving or the gateway.
-3. Roll back by pointing traffic at the previous Cloud Run revision; the model version is part of the image tag
-   and the GCS path, so the pair moves together.
+3. Roll back by pointing traffic at the previous Cloud Run revision. A revision pins its image and its model
+   version (`LDP_MODEL_VERSION` and TF Serving's version policy), so the pair moves together. (The version pin
+   was added after the 2026-10-18 deploy and has not been applied on Cloud Run yet.)
 
 ## Latency
 

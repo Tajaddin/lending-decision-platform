@@ -154,6 +154,22 @@ def test_gold_and_split_export(spark, fixture_csv, tmp_path: Path) -> None:
     assert manifest["splits"][0]["gold_delta_version"] == exports[0].gold_delta_version
 
 
+def test_rebuilding_one_gold_year_keeps_the_others(spark, fixture_csv, tmp_path: Path) -> None:
+    from ldp.spark.bronze import write_bronze
+    from ldp.spark.gold import write_gold
+    from ldp.spark.silver import write_silver
+
+    lake = tmp_path / "lake"
+    for year in (2024, 2025):
+        write_bronze(spark, fixture_csv[year], str(lake / "bronze"), year)
+        write_silver(spark, str(lake / "bronze"), str(lake / "silver"), year)
+    first = write_gold(spark, str(lake / "silver"), str(lake / "gold"), [2024, 2025])
+    again = write_gold(spark, str(lake / "silver"), str(lake / "gold"), [2025])
+    assert again == {2025: first[2025]}
+    counts = spark.read.format("delta").load(str(lake / "gold")).groupBy("activity_year").count().collect()
+    assert {r["activity_year"]: r["count"] for r in counts} == {y: s["rows"] for y, s in first.items()}
+
+
 def test_spark_info_on_a_local_session_and_without_a_spark_context(spark, monkeypatch) -> None:
     from pyspark.errors import PySparkAttributeError
 

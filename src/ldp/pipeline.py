@@ -48,13 +48,26 @@ def run_pipeline(
     master: str | None = None,
     audit_sample_rows: int = 600_000,
     stages: tuple[str, ...] = ALL_STAGES,
+    allow_underpowered_audit: bool = False,
 ) -> dict[str, Any]:
     """Run the selected stages in order. Later stages read what earlier runs left in the lake, so
-    `stages=("export",)` re-exports the training splits without reloading 14 GB of CSV."""
+    `stages=("export",)` re-exports the training splits without reloading 14 GB of CSV.
+
+    The leakage audit stops the run when the training year has too few rows to screen the features;
+    `allow_underpowered_audit` lets a run on fixtures or a sample go on with the audit reported as not enforced.
+    """
     unknown = set(stages) - set(ALL_STAGES)
     if unknown:
         raise ValueError(f"unknown stages {sorted(unknown)}; choose from {ALL_STAGES}")
-    from ldp.audit import assert_features_clean, candidates, is_powered, run_audit, write_audit
+    from ldp.audit import (
+        MIN_ROWS_PER_CLASS,
+        LeakageError,
+        assert_features_clean,
+        candidates,
+        is_powered,
+        run_audit,
+        write_audit,
+    )
     from ldp.spark import bronze, gold, lake, quality, silver
     from ldp.spark.session import get_spark, spark_info
 
@@ -96,11 +109,18 @@ def run_pipeline(
         with timer.stage("leakage_audit"):
             train = lake.read(spark, gold_path).where(F.col("activity_year") == settings.train_year)
             n = train.count()
-            fraction = min(1.0, audit_sample_rows / max(n, 1))
+            if n == 0:
+                raise LeakageError(f"gold has no {settings.train_year} rows: the leakage audit has nothing to screen")
+            fraction = min(1.0, audit_sample_rows / n)
             cols = [c for c in candidates() if c in train.columns]
             sample = train.select(*cols, LABEL).sample(fraction=fraction, seed=7).toPandas()
-            audit = run_audit(sample)
             powered = is_powered(sample)
+            if not powered and not allow_underpowered_audit:
+                raise LeakageError(
+                    f"{len(sample)} sampled {settings.train_year} rows cannot power the leakage audit "
+                    f"({MIN_ROWS_PER_CLASS} per class needed); allow an underpowered audit only for fixtures or samples"
+                )
+            audit = run_audit(sample)
             write_audit(
                 audit,
                 rows=len(sample),

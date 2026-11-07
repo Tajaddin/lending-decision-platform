@@ -4,6 +4,10 @@ Load testing found that an overload which made clients give up left the connecti
 call waited out the pool timeout and the service stayed at 100% errors until restarted. Two defences: the pool
 has explicit limits and its own short timeout, and each call to TF Serving runs in its own task that a client
 disconnect cannot cancel half-way (the connection always goes back to the pool).
+
+Every call names a model version. Unversioned, TF Serving answers with the highest version it has loaded, so a
+newly uploaded model would score requests while the gateway still applied the old threshold and reason groups
+and recorded the old version on every decision.
 """
 
 from __future__ import annotations
@@ -34,12 +38,15 @@ class TFServingClient:
         self,
         base_url: str,
         model: str,
+        version: int | str,
         timeout_s: float = 2.0,
         client: httpx.AsyncClient | None = None,
         max_connections: int = 64,
     ):
         self.base_url = base_url.rstrip("/")
         self.model = model
+        self.version = str(version)
+        self._model_url = f"{self.base_url}/v1/models/{model}/versions/{self.version}"
         self._client = client or httpx.AsyncClient(
             timeout=httpx.Timeout(timeout_s, pool=0.5),
             limits=httpx.Limits(max_connections=max_connections, max_keepalive_connections=max_connections),
@@ -49,17 +56,19 @@ class TFServingClient:
         await self._client.aclose()
 
     async def status(self) -> dict[str, Any]:
-        r = await self._client.get(f"{self.base_url}/v1/models/{self.model}")
+        r = await self._client.get(self._model_url)
         r.raise_for_status()
         return r.json()
 
     async def ready_version(self) -> str | None:
+        """This client's version if TF Serving has it loaded, else None (TF Serving answers 404 for a version it
+        does not have)."""
         try:
             versions = (await self.status()).get("model_version_status", [])
         except httpx.HTTPError:
             return None
-        available = [v["version"] for v in versions if v.get("state") == "AVAILABLE"]
-        return max(available, key=int) if available else None
+        loaded = any(v.get("version") == self.version and v.get("state") == "AVAILABLE" for v in versions)
+        return self.version if loaded else None
 
     async def explain(self, rows: list[dict[str, float | str]]) -> Prediction:
         columns = {name: [row[name] for row in rows] for name in rows[0]}
@@ -68,7 +77,7 @@ class TFServingClient:
         start = time.perf_counter()
         call = asyncio.ensure_future(
             self._client.post(
-                f"{self.base_url}/v1/models/{self.model}:predict",
+                f"{self._model_url}:predict",
                 content=body,
                 headers={"content-type": "application/json"},
             )
