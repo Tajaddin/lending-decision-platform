@@ -25,6 +25,8 @@ BigQuery, drift and fairness monitoring with alerts, all from one command. **Met
   offline analysis: credit score type 0.185 live vs 0.174 offline, loan purpose 0.159 vs 0.153.
 - k6, one machine, 2 API workers: 0 failures and p99 36.2 ms up to 400 req/s; 600 req/s at p99 229.0 ms with
   0.34% of requests shed; 800 req/s sheds 30.8% fast and the next request is answered normally.
+  Re-measured 2026-11-07 on commit 6dddb7c under Docker Desktop on Windows: p99 26.6 ms at 400 req/s, 276.5 ms with
+  0.42% shed at 600, 26.7% shed at 800; the README carries that run.
 
 ## What went well
 
