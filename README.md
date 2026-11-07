@@ -26,14 +26,21 @@ protected groups worse than the lenders already do (disparate impact).
 | Fair lending | Audit **fails** the model for age 62+ (AIR 0.761 vs the lenders' 0.930) and for Black applicants (0.759 vs 0.827): it would widen existing gaps, so the model card marks it **not approved** | [`fairness.json`](reports/fairness.json), [model card](docs/MODEL-CARD.md) |
 | Stability | Score PSI vs 2023: 0.004 on 2024, 0.016 on 2025; largest input shift `applicant_credit_score_type` (PSI 0.174). Replaying 5,000 real 2025 applications through the live stack, the monitor measured 0.185 for the same input | [`psi.json`](reports/psi.json), [`replay-monitor.json`](reports/replay-monitor.json) |
 | Spark | Silver stage on the 13.5M-row 2025 year: **553 s on 1 core, 93 s on 16 (5.95x)**; batch scoring of all 5.44M 2025 applications with the SavedModel in **19.3 s** on 8 cores | [`spark-bench.json`](reports/spark-bench.json), [`batch-scoring.json`](reports/batch-scoring.json) |
-| Online serving (k6, 2 API workers + TF Serving on one machine) | **0 failures, p99 36 ms at 400 req/s**; p99 229 ms at 600 req/s with 0.34% shed; at 800 req/s 30.8% is shed with fast 503s and the service recovers at once (the first version broke permanently under that load; see the [Sprint 3 retro](docs/sprints/sprint-3.md)) | [`reports/k6/`](reports/k6) |
+| Online serving (k6, 2 API workers + TF Serving on one machine) | **0 failures, p99 27 ms at 400 req/s**; p99 277 ms at 600 req/s with 0.42% shed (above the script's 250 ms p99 threshold); at 800 req/s 26.7% is shed with 503s and the service recovers at once (the first version broke permanently under that load; see the [Sprint 3 retro](docs/sprints/sprint-3.md)) | [`reports/k6/`](reports/k6) |
 | On Databricks (Free Edition, serverless) | The same bundle job ran the whole pipeline on the 14 GB of CSV in **441 s**, first attempt; every row count, quality result, leakage flag and split is **identical to the local run** | [`reports/databricks/`](reports/databricks) |
 | On GCP (Cloud Run with the TF Serving sidecar, Pub/Sub, BigQuery) | Serves model v1; decisions in 112-169 ms from a home connection in Tampa; 401 without a key; every decision **in BigQuery within 5 s** through the Pub/Sub subscription | [`reports/cloud/smoke.json`](reports/cloud/smoke.json) |
 
-Hardware for every local timing: one desktop, Intel i5-13600KF (14 cores / 20 threads), WSL2 Ubuntu 24.04 with
-15.5 GB, data on the WSL ext4 disk. The Databricks and GCP rows ran on 2026-10-18 ([docs/DEPLOY.md](docs/DEPLOY.md)).
-The k6 numbers come from the serving code of commit 1a9527a (2026-10-18), before the API key check and body cap
-moved ahead of the body read and before the model-version pin; they have not been re-run since.
+Hardware for every local timing: one desktop, Intel i5-13600KF (14 cores / 20 threads). Every timing except the
+2026-11-07 k6 rows ran under WSL2 Ubuntu 24.04 with 15.5 GB, data on the WSL ext4 disk. The Databricks and GCP rows
+ran on 2026-10-18 ([docs/DEPLOY.md](docs/DEPLOY.md)).
+The k6 numbers were re-measured on 2026-11-07 on the serving code of commit 6dddb7c (main: API key check and body cap
+ahead of the body read, model-version pin), replacing the 2026-10-18 run on commit 1a9527a (p99 36 ms at 400 req/s,
+229 ms with 0.34% shed at 600, 30.8% shed at 800; still in the history of `reports/k6/`). Same desktop, but the stack
+ran under Docker Desktop 29.8.2 on Windows 11 (20 CPUs and 15.5 GiB for its VM) with the repository on an NTFS drive
+rather than the WSL ext4 disk; the machine was otherwise idle (CPU 4% before the first run, 9.8 GB of 31.8 GB free, no
+other containers, GPU 10%). Rates ran in the order 50, 100, 200, 400, 600, 800 req/s, 60 s each. The 503 count and the
+recovery check come from the live stack, not from the result files: Prometheus counted 12,974 responses with status 503,
+equal to k6's failed requests at 600 and 800 req/s together, and a decision answered 200 in 8 ms right after the 800 req/s run.
 
 ## Architecture
 
