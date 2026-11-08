@@ -1,5 +1,5 @@
 .PHONY: install lint format typecheck test test-integration test-bats alerts-test check secret-scan download pipeline \
-        train model-card score-batch bench ablation up down replay replay-report load-test tf-validate bundle-validate backlog
+        train model-card score-batch bench ablation lda-search lda-holdout up down replay replay-report load-test tf-validate bundle-validate backlog
 
 YEARS ?= 2023,2024,2025
 RAW ?= data/raw
@@ -55,6 +55,12 @@ bench:              ## silver stage at 1/2/4/8/16 cores on 2025 (after `make pip
 
 ablation:           ## drop-one-input ablation and AIR per variant (less discriminatory alternative search)
 	uv run python scripts/ablation.py
+
+lda-search:         ## train and audit the less discriminatory alternatives on 2024, choose one (#27)
+	uv run python scripts/lda_search.py search
+
+lda-holdout:        ## score the chosen alternative on 2025, once
+	uv run python scripts/lda_search.py holdout
 
 up:                 ## the whole online stack from local images
 	docker compose up -d --build --wait --wait-timeout 300 api sink monitor prometheus grafana

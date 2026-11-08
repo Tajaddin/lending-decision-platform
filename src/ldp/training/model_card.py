@@ -39,7 +39,7 @@ def render(reports: Path, model_dir: Path) -> str:
             + ", ".join(f"`{f}`" for f in fair["flags"])
             + ". Where the model's adverse impact ratio is below the lenders' own, it would widen an existing gap. "
             "See the audit table and `reports/fairness-drivers.json`; a less discriminatory alternative has to pass "
-            "the same audit before any use."
+            "the same audit before any use." + _lda_status(reports)
         )
         if fair["flags"]
         else "Passes the fair-lending audit at the operating threshold.",
@@ -126,6 +126,7 @@ def render(reports: Path, model_dir: Path) -> str:
             )
     lines += ["", f"Flags: {', '.join(fair['flags']) if fair['flags'] else 'none'}.", ""]
     lines += _drivers_section(reports)
+    lines += _lda_section(reports)
     agree = m["reason_agreement"]
     lines += [
         "## Explanations",
@@ -217,6 +218,150 @@ def _drivers_section(reports: Path) -> list[str]:
             "",
         ]
     return lines
+
+
+LDA_COLUMNS = (
+    ("age:Yes", "Age 62+"),
+    ("race:Black or African American", "Black"),
+    ("race:American Indian or Alaska Native", "Am. Indian"),
+    ("race:Native Hawaiian or Other Pacific Islander", "Pac. Islander"),
+    ("sex:Female", "Female"),
+)
+
+
+def _airs(summary: dict[str, Any], key: str = "model_air") -> dict[str, float]:
+    return {f"{g['dimension']}:{g['group']}": g[key] for g in summary["groups"]}
+
+
+def _lda_status(reports: Path) -> str:
+    """One sentence for the status line: what the joint search (issue #27) found, if it has run."""
+    path = reports / "lda-search.json"
+    if not path.exists():
+        return ""
+    r = _load(path)
+    h = r.get("holdout_2025")
+    if not h:
+        return (
+            f" The joint search for one (issue #27) has chosen `{r['chosen']['name']}` on 2024; 2025 is not scored yet."
+        )
+    if h["passes_audit"]:
+        return (
+            f" The joint search (issue #27) found one: `{h['variant']}` passes the audit on 2025 at AUC "
+            f"{h['auc']:.4f} (v1 {h['v1']['auc']:.4f}). It is not exported or served yet."
+        )
+    chosen = (
+        f"`{h['variant']}` passed on 2024 but"
+        if r["chosen"]["passes_2024_audit"]
+        else f"the closest on 2024, `{h['variant']}`, still"
+    )
+    return (
+        f" The joint search for one (issue #27) found none that passes on 2025: {chosen} flags "
+        f"{len(h['flags'])} group(s) there (" + ", ".join(f"`{f}`" for f in h["flags"]) + f") at AUC {h['auc']:.4f} "
+        f"(v1 {h['v1']['auc']:.4f}), while passing {len([f for f in h['v1']['flags'] if f not in h['flags']])} of "
+        f"v1's {len(h['v1']['flags'])} flagged groups."
+    )
+
+
+def _lda_section(reports: Path) -> list[str]:
+    """The joint search of issue #27 (`scripts/lda_search.py`): every variant on 2024, the chosen one on 2025."""
+    path = reports / "lda-search.json"
+    if not path.exists():
+        return []
+    r = _load(path)
+    ref = r["reference"]["valid_2024"]
+    observed = _airs(ref, "observed_air")
+    head = " | ".join(label for _, label in LDA_COLUMNS)
+    lines = [
+        "### Less discriminatory alternative search, joint (2024 validation year)",
+        "",
+        "Each variant is the v1 recipe with one change to the training loss; protected attributes enter only the "
+        "loss, never the inputs or the threshold (ADR 0010). Three variants:",
+        "",
+        "- **Reweighing** (Kamiran & Calders 2012): each application weighted so that the denial rate is the same "
+        "in every age x race x sex cell.",
+        "- **Mean-logit penalty**: cross-entropy + lambda x the squared gap in mean logit between each group and its "
+        "reference, among approved and among denied applications separately (a relaxation of equalized odds, "
+        "Hardt et al. 2016), for age 62+, Black and female applicants. lambda = 0 is the v1 recipe re-run.",
+        "- **Referral-rate penalty**: the same, on a smooth referral rate at each batch's own 80%-recall threshold, "
+        "with American Indian applicants added (split-halves estimate for small groups). Equal referral rates "
+        "among approved and among denied applications would give every group whose denial rate is higher an AIR at "
+        "least the lenders' own.",
+        "",
+        f"Choice, on 2024 only: {r['protocol']['selection'].split('; ', 1)[1]}. AIR of each group v1 fails:",
+        "",
+        f"| Variant | AUC | Referral rate | {head} | Flags |",
+        "|---|---|---|" + "---|" * len(LDA_COLUMNS) + "---|",
+        "| Lenders' own decisions | | | " + " | ".join(f"{observed[k]:.3f}" for k, _ in LDA_COLUMNS) + " | |",
+    ]
+    for c in [r["reference"], *r["candidates"]]:
+        v = c["valid_2024"]
+        airs = _airs(v)
+        lines.append(
+            f"| {c['name']} | {v['auc']:.4f} | {_pct(v['referral_rate'])} | "
+            + " | ".join(f"{airs[k]:.3f}" for k, _ in LDA_COLUMNS)
+            + f" | {len(v['flags'])} |"
+        )
+    lines += [
+        "",
+        "A single cut-off is the only threshold ADR 0006 allows. Moving it for everyone changes how many denials "
+        "are caught, not just the AIRs (v1, 2024):",
+        "",
+        "| Denials caught (target) | Referral rate | " + head + " | Flags |",
+        "|---|---|" + "---|" * len(LDA_COLUMNS) + "---|",
+    ]
+    for s in r["operating_rule_sensitivity_v1"]:
+        lines.append(
+            f"| {_pct(s['recall_target'])} | {_pct(s['referral_rate'])} | "
+            + " | ".join(f"{s['model_air'][k]:.3f}" for k, _ in LDA_COLUMNS)
+            + f" | {len(s['flags'])} |"
+        )
+    chosen = r["chosen"]
+    lines += [
+        "",
+        f"Chosen on 2024: **{chosen['name']}** ({chosen['rule']}).",
+        "",
+    ]
+    h = r.get("holdout_2025")
+    if not h:
+        return [*lines, "The chosen variant has not been scored on 2025 yet.", ""]
+    v1 = h["v1"]
+    v1_air, lda_air, obs = _airs(v1), _airs(h), _airs(h, "observed_air")
+    lines += [
+        f"#### The chosen variant on the 2025 hold-out (scored once, {h['scored_at'][:10]})",
+        "",
+        f"AUC {h['auc']:.4f} ({h['auc_ci95'][0]:.4f}-{h['auc_ci95'][1]:.4f}) against v1's {v1['auc']:.4f}; "
+        f"referral rate {_pct(h['referral_rate'])} (v1 {_pct(v1['referral_rate'])}) for "
+        f"{_pct(h['recall_of_denials'])} of denials caught. "
+        + (
+            "**It passes the audit: no group is flagged.**"
+            if h["passes_audit"]
+            else f"**It does not pass the audit**: {len(h['flags'])} group(s) flagged ("
+            + ", ".join(f"`{f}`" for f in h["flags"])
+            + ")."
+        ),
+        "",
+        "| Dimension | Group (reference) | Lenders' AIR | v1 AIR | Chosen variant AIR |",
+        "|---|---|---|---|---|",
+    ]
+    for g in h["groups"]:
+        k = f"{g['dimension']}:{g['group']}"
+        lines.append(
+            f"| {g['dimension']} | {g['group']} ({g['reference']}) | {obs[k]:.3f} | {v1_air[k]:.3f} | "
+            f"{lda_air[k]:.3f} |"
+        )
+    fixed = [f for f in v1["flags"] if f not in h["flags"]]
+    lines += ["", f"Of the {len(v1['flags'])} groups v1 fails, the chosen variant passes {len(fixed)}."]
+    for f in h["flags"]:
+        if lda_air[f] >= 1.0:
+            lines[-1] += (
+                f" `{f}` is flagged at an AIR of {lda_air[f]:.3f}, at or above parity with its reference: the audit "
+                f"flags any model AIR more than 0.02 below the lenders' own ({obs[f]:.3f}). Equalized odds moves a "
+                "group whose denial rate is lower than its reference's toward parity (the inequality in "
+                "`ldp.training.lda` reverses for it), so for such groups this rule and this method pull against each "
+                "other. Whether the rule should apply to a group at or above parity is for the audit's owner to "
+                "decide; it is not changed here after seeing the 2025 result."
+            )
+    return [*lines, ""]
 
 
 def write(reports: Path, model_dir: Path, out: Path) -> None:

@@ -33,6 +33,15 @@ From 25 saved postings (fintech/lending, healthcare, security, agriculture, deve
   FinRegLab found that dropping the features that "drive" disparities rarely yields a less discriminatory model
   and usually costs accuracy, which is why this project measures AIR against the lenders' own decisions instead
   of pretending a feature list can make the labels fair.
+- Methods for the joint search (issue #27, `scripts/lda_search.py`): reweighing (Kamiran & Calders, "Data
+  preprocessing techniques for classification without discrimination", Knowledge and Information Systems 33(1),
+  2012, [doi:10.1007/s10115-011-0463-8](https://doi.org/10.1007/s10115-011-0463-8)) and equalized odds (Hardt,
+  Price & Srebro, "Equality of Opportunity in Supervised Learning", 2016,
+  [arXiv:1610.02413](https://arxiv.org/abs/1610.02413)) as a penalty in the training loss. Equalized odds fits
+  this audit: a model that refers the same share of approved and the same share of denied applicants in every
+  group has an AIR at least the lenders' own for every group whose denial rate is higher (the algebra is in
+  `src/ldp/training/lda.py`). The post-processing route Hardt et al. describe, a threshold per group, is
+  disparate treatment and excluded by ADR 0006.
 
 ## How each gap skill is used in production, and the free way to use it here
 

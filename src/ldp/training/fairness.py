@@ -19,6 +19,7 @@ import pandas as pd
 from ldp.training.evaluate import auc
 
 AIR_LIMIT = 0.80
+GAP_TOLERANCE = 0.02  # a model AIR this far below the lenders' own is flagged
 MIN_GROUP = 1_000
 
 DIMENSIONS: dict[str, dict[str, Any]] = {
@@ -79,7 +80,7 @@ def audit(df: pd.DataFrame, threshold: float) -> dict[str, Any]:
             g["model_minus_observed_air"] = g["model_air"] - g["observed_air"]
             g["calibration_gap"] = g["mean_predicted"] - g["observed_denial_rate"]
             g["flag_model_air_below_limit"] = g["model_air"] < AIR_LIMIT
-            g["flag_model_widens_gap"] = g["model_air"] < g["observed_air"] - 0.02
+            g["flag_model_widens_gap"] = g["model_air"] < g["observed_air"] - GAP_TOLERANCE
             if g["flag_model_air_below_limit"] or g["flag_model_widens_gap"]:
                 flags.append(f"{dim}:{group}")
             rows.append(g)
